@@ -38,8 +38,7 @@
     "SUPABASE_ANON_KEY": "@supabase_anon_key",
     "NEXT_PUBLIC_SUPABASE_URL": "@next_public_supabase_url",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@next_public_supabase_anon_key",
-    "NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL": "@next_public_dev_supabase_redirect_url",
-    "GITHUB_PERSONAL_ACCESS_TOKEN": "@github_personal_access_token"
+    "NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL": "@next_public_dev_supabase_redirect_url"
   },
   "build": {
     "env": {

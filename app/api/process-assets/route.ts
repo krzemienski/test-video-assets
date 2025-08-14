@@ -68,13 +68,13 @@ async function processVideoAssets() {
 
     const assets = []
     const facetCounts = {
-      protocol: {},
-      codec: {},
-      resolution: {},
+      protocols: {},
+      codecs: {},
+      resolutions: {},
       hdr: {},
-      container: {},
-      host: {},
-      scheme: {},
+      containers: {},
+      hosts: {},
+      schemes: {},
     }
 
     let processedCount = 0
@@ -117,10 +117,10 @@ async function processVideoAssets() {
         const id = await generateId(normalizedUrl)
 
         // Extract protocols
-        const protocol = extractProtocols(formatProtocol, notes)
+        const protocols = extractProtocols(formatProtocol, notes)
 
         // Extract codecs
-        const codec = extractCodecs(formatProtocol, notes)
+        const codecs = extractCodecs(formatProtocol, notes)
 
         // Extract resolution
         const resolution = extractResolution(formatProtocol, notes)
@@ -140,8 +140,8 @@ async function processVideoAssets() {
           host,
           scheme,
           category: category?.trim() || "Uncategorized",
-          protocol,
-          codec,
+          protocols,
+          codecs,
           resolution,
           hdr,
           container,
@@ -153,14 +153,14 @@ async function processVideoAssets() {
         processedCount++
 
         // Update facet counts
-        protocol.forEach((p) => (facetCounts.protocol[p] = (facetCounts.protocol[p] || 0) + 1))
-        codec.forEach((c) => (facetCounts.codec[c] = (facetCounts.codec[c] || 0) + 1))
+        protocols.forEach((p) => (facetCounts.protocols[p] = (facetCounts.protocols[p] || 0) + 1))
+        codecs.forEach((c) => (facetCounts.codecs[c] = (facetCounts.codecs[c] || 0) + 1))
         if (resolution?.label)
-          facetCounts.resolution[resolution.label] = (facetCounts.resolution[resolution.label] || 0) + 1
+          facetCounts.resolutions[resolution.label] = (facetCounts.resolutions[resolution.label] || 0) + 1
         if (hdr) facetCounts.hdr[hdr] = (facetCounts.hdr[hdr] || 0) + 1
-        if (container) facetCounts.container[container] = (facetCounts.container[container] || 0) + 1
-        facetCounts.host[host] = (facetCounts.host[host] || 0) + 1
-        facetCounts.scheme[scheme] = (facetCounts.scheme[scheme] || 0) + 1
+        if (container) facetCounts.containers[container] = (facetCounts.containers[container] || 0) + 1
+        facetCounts.hosts[host] = (facetCounts.hosts[host] || 0) + 1
+        facetCounts.schemes[scheme] = (facetCounts.schemes[scheme] || 0) + 1
 
         if (processedCount % 100 === 0) {
           console.log(

@@ -1,11 +1,7 @@
 "use client"
 
 import type * as React from "react"
-import { FileVideo, Gauge, Home, Settings, Sparkles, Plus, Monitor, Cpu, HardDrive, Globe, Shield } from "lucide-react"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { ContributeAssetDialog } from "./contribute-asset-dialog"
-import { GitHubRepoInfo } from "./github-repo-info"
+import { Database, FileVideo, Gauge, Home, Monitor, Play, Settings, Sparkles, Video, Zap } from "lucide-react"
 
 import {
   Sidebar,
@@ -21,23 +17,7 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar"
 
-import {
-  VideoTestAssetsLogo,
-  HLSIcon,
-  DASHIcon,
-  CMAFIcon,
-  Resolution4KIcon,
-  Resolution8KIcon,
-  HDR10Icon,
-  AV1Icon,
-  HEVCIcon,
-  DolbyVisionIcon,
-} from "./icons/custom-icons"
-
-interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
-  onFilterChange?: (filters: Record<string, string[]>) => void
-}
-
+// Navigation data based on PRD requirements
 const navigationData = {
   main: [
     {
@@ -50,361 +30,204 @@ const navigationData = {
   protocols: [
     {
       title: "HLS",
-      icon: HLSIcon,
-      filter: { protocol: ["hls"] },
+      url: "/protocols/hls",
+      icon: Play,
     },
     {
       title: "DASH",
-      icon: DASHIcon,
-      filter: { protocol: ["dash"] },
+      url: "/protocols/dash",
+      icon: Video,
     },
     {
       title: "CMAF",
-      icon: CMAFIcon,
-      filter: { protocol: ["cmaf"] },
+      url: "/protocols/cmaf",
+      icon: Database,
     },
     {
       title: "Smooth Streaming",
+      url: "/protocols/smooth",
       icon: Gauge,
-      filter: { protocol: ["smooth"] },
-    },
-    {
-      title: "Direct Files",
-      icon: FileVideo,
-      filter: { protocol: ["file"] },
     },
   ],
-  resolutions: [
+  videoSpecs: [
     {
-      title: "8K (4320p)",
-      icon: Resolution8KIcon,
-      filter: { resolution: ["8k", "4320p"] },
-    },
-    {
-      title: "4K (2160p)",
-      icon: Resolution4KIcon,
-      filter: { resolution: ["4k", "2160p"] },
-    },
-    {
-      title: "Full HD (1080p)",
+      title: "4K Assets",
+      url: "/specs/4k",
       icon: Monitor,
-      filter: { resolution: ["1080p", "fullhd"] },
     },
     {
-      title: "HD (720p)",
+      title: "8K Assets",
+      url: "/specs/8k",
       icon: Monitor,
-      filter: { resolution: ["720p", "hd"] },
-    },
-    {
-      title: "SD (480p)",
-      icon: Monitor,
-      filter: { resolution: ["480p", "sd"] },
-    },
-  ],
-  codecs: [
-    {
-      title: "AV1",
-      icon: AV1Icon,
-      filter: { codec: ["av1"] },
-    },
-    {
-      title: "HEVC/H.265",
-      icon: HEVCIcon,
-      filter: { codec: ["hevc", "h265"] },
     },
     {
       title: "H.264/AVC",
-      icon: Cpu,
-      filter: { codec: ["avc", "h264"] },
+      url: "/codecs/avc",
+      icon: FileVideo,
     },
     {
-      title: "VP9",
-      icon: Cpu,
-      filter: { codec: ["vp9"] },
+      title: "HEVC/H.265",
+      url: "/codecs/hevc",
+      icon: FileVideo,
     },
     {
-      title: "MPEG-2",
-      icon: Cpu,
-      filter: { codec: ["mpeg2"] },
-    },
-    {
-      title: "VVC/H.266",
-      icon: Cpu,
-      filter: { codec: ["vvc", "h266"] },
+      title: "AV1",
+      url: "/codecs/av1",
+      icon: FileVideo,
     },
   ],
-  containers: [
-    {
-      title: "MP4",
-      icon: HardDrive,
-      filter: { container: ["mp4"] },
-    },
-    {
-      title: "WebM",
-      icon: HardDrive,
-      filter: { container: ["webm"] },
-    },
-    {
-      title: "MKV",
-      icon: HardDrive,
-      filter: { container: ["mkv"] },
-    },
-    {
-      title: "MOV",
-      icon: HardDrive,
-      filter: { container: ["mov"] },
-    },
-  ],
-  hdrFormats: [
-    {
-      title: "SDR",
-      icon: Monitor,
-      filter: { hdr: ["sdr"] },
-    },
+  advancedFeatures: [
     {
       title: "HDR10",
-      icon: HDR10Icon,
-      filter: { hdr: ["hdr10"] },
-    },
-    {
-      title: "HDR (Generic)",
+      url: "/hdr/hdr10",
       icon: Sparkles,
-      filter: { hdr: ["hdr"] },
-    },
-    {
-      title: "Dolby Vision",
-      icon: DolbyVisionIcon,
-      filter: { hdr: ["dovi", "dolby-vision"] },
     },
     {
       title: "HLG",
+      url: "/hdr/hlg",
       icon: Sparkles,
-      filter: { hdr: ["hlg"] },
-    },
-  ],
-  schemes: [
-    {
-      title: "HTTPS",
-      icon: Shield,
-      filter: { scheme: ["https"] },
     },
     {
-      title: "HTTP",
-      icon: Globe,
-      filter: { scheme: ["http"] },
-    },
-    {
-      title: "RTMP",
-      icon: Globe,
-      filter: { scheme: ["rtmp"] },
-    },
-    {
-      title: "RTSP",
-      icon: Globe,
-      filter: { scheme: ["rtsp"] },
+      title: "Dolby Vision",
+      url: "/hdr/dovi",
+      icon: Zap,
     },
   ],
   resources: [
     {
       title: "Documentation",
-      url: "/resources",
+      url: "/resources/docs",
       icon: Settings,
     },
     {
       title: "Tools & Players",
-      url: "/resources",
+      url: "/resources/tools",
       icon: Settings,
     },
   ],
 }
 
-export function AppSidebar({ onFilterChange, ...props }: AppSidebarProps) {
-  const [contributeDialogOpen, setContributeDialogOpen] = useState(false)
-
-  const handleFilterClick = (filter: Record<string, string[]>) => {
-    if (onFilterChange) {
-      onFilterChange(filter)
-    }
-  }
-
-  const handleClearFilters = () => {
-    if (onFilterChange) {
-      onFilterChange({})
-    }
-  }
-
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <>
-      <Sidebar variant="inset" {...props}>
-        <SidebarHeader>
-          <div className="flex items-center gap-2 px-2 py-2">
-            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-              <VideoTestAssetsLogo className="size-6" />
-            </div>
-            <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-semibold">Video Test Assets</span>
-              <span className="truncate text-xs text-sidebar-foreground/70">Portal</span>
-            </div>
+    <Sidebar variant="inset" {...props}>
+      <SidebarHeader>
+        <div className="flex items-center gap-2 px-2 py-2">
+          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+            <Video className="size-4" />
           </div>
-        </SidebarHeader>
-
-        <SidebarContent>
-          {/* Main Navigation */}
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {navigationData.main.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={item.isActive}>
-                      <a href={item.url} onClick={handleClearFilters}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          <SidebarSeparator />
-
-          {/* Streaming Protocols */}
-          <SidebarGroup>
-            <SidebarGroupLabel>Streaming Protocols</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {navigationData.protocols.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton onClick={() => handleFilterClick(item.filter)}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          <SidebarGroup>
-            <SidebarGroupLabel>Resolution</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {navigationData.resolutions.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton onClick={() => handleFilterClick(item.filter)}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          <SidebarGroup>
-            <SidebarGroupLabel>Video Codecs</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {navigationData.codecs.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton onClick={() => handleFilterClick(item.filter)}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          <SidebarGroup>
-            <SidebarGroupLabel>Container Formats</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {navigationData.containers.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton onClick={() => handleFilterClick(item.filter)}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          <SidebarGroup>
-            <SidebarGroupLabel>HDR Formats</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {navigationData.hdrFormats.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton onClick={() => handleFilterClick(item.filter)}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          <SidebarGroup>
-            <SidebarGroupLabel>URL Schemes</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {navigationData.schemes.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton onClick={() => handleFilterClick(item.filter)}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          {/* Resources */}
-          <SidebarGroup>
-            <SidebarGroupLabel>Resources</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {navigationData.resources.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <a href={item.url}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-
-        <SidebarFooter>
-          <div className="p-2 space-y-3">
-            <GitHubRepoInfo />
-
-            {/* Contribute Button */}
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full text-green-600 border-green-200 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:border-green-800 dark:hover:text-green-300 dark:hover:bg-green-950 bg-transparent"
-              onClick={() => setContributeDialogOpen(true)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Contribute Asset
-            </Button>
+          <div className="grid flex-1 text-left text-sm leading-tight">
+            <span className="truncate font-semibold">Video Test Assets</span>
+            <span className="truncate text-xs text-sidebar-foreground/70">Portal</span>
           </div>
-        </SidebarFooter>
-      </Sidebar>
+        </div>
+      </SidebarHeader>
 
-      <ContributeAssetDialog open={contributeDialogOpen} onOpenChange={setContributeDialogOpen} />
-    </>
+      <SidebarContent>
+        {/* Main Navigation */}
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navigationData.main.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={item.isActive}>
+                    <a href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarSeparator />
+
+        {/* Streaming Protocols */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Streaming Protocols</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navigationData.protocols.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <a href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Video Specifications */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Video Specs</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navigationData.videoSpecs.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <a href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Advanced Features */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Advanced Features</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navigationData.advancedFeatures.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <a href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Resources */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Resources</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navigationData.resources.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <a href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter>
+        <div className="p-2">
+          <div className="text-xs text-sidebar-foreground/70">
+            <div>Dataset: v1.0.0</div>
+            <div>Assets: Loading...</div>
+          </div>
+        </div>
+      </SidebarFooter>
+    </Sidebar>
   )
 }

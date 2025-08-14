@@ -1,7 +1,0 @@
-URL,Category,Format/Protocol,Notes
-https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8,Test repositories,HLS,Bipbop advanced example with fMP4
-https://bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd,Test repositories,DASH,Bitmovin test content
-https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8,Test repositories,HLS,Tears of Steel HLS
-https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.mpd,Test repositories,DASH,Tears of Steel DASH
-https://storage.googleapis.com/shaka-demo-assets/angel-one-hls/hls.m3u8,Test repositories,HLS,Shaka Player demo content
-https://storage.googleapis.com/shaka-demo-assets/angel-one/angel_one.mpd,Test repositories,DASH,Shaka Player demo content

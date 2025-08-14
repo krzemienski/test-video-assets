@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS video_assets (
   host TEXT NOT NULL,
   scheme TEXT NOT NULL,
   category TEXT NOT NULL DEFAULT 'Uncategorized',
-  protocol JSONB NOT NULL DEFAULT '[]', -- Updated from protocols to protocol
-  codec JSONB NOT NULL DEFAULT '[]', -- Updated from codecs to codec
+  protocols JSONB NOT NULL DEFAULT '[]',
+  codecs JSONB NOT NULL DEFAULT '[]',
   resolution JSONB,
   hdr TEXT DEFAULT 'sdr',
   container TEXT,
@@ -44,8 +44,8 @@ CREATE INDEX IF NOT EXISTS idx_video_assets_host ON video_assets(host);
 CREATE INDEX IF NOT EXISTS idx_video_assets_category ON video_assets(category);
 CREATE INDEX IF NOT EXISTS idx_video_assets_hdr ON video_assets(hdr);
 CREATE INDEX IF NOT EXISTS idx_video_assets_container ON video_assets(container);
-CREATE INDEX IF NOT EXISTS idx_video_assets_protocol ON video_assets USING GIN(protocol); -- Updated from protocols to protocol
-CREATE INDEX IF NOT EXISTS idx_video_assets_codec ON video_assets USING GIN(codec); -- Updated from codecs to codec
+CREATE INDEX IF NOT EXISTS idx_video_assets_protocols ON video_assets USING GIN(protocols);
+CREATE INDEX IF NOT EXISTS idx_video_assets_codecs ON video_assets USING GIN(codecs);
 CREATE INDEX IF NOT EXISTS idx_video_assets_features ON video_assets USING GIN(features);
 
 -- Function to update facet counts
@@ -57,19 +57,19 @@ BEGIN
   
   -- Insert protocol counts
   INSERT INTO facet_counts (facet_type, facet_value, count)
-  SELECT 'protocol', protocol_value, COUNT(*) -- Updated from 'protocols' to 'protocol'
-  FROM video_assets, jsonb_array_elements_text(protocol) AS protocol_value -- Updated from protocols to protocol
-  GROUP BY protocol_value;
+  SELECT 'protocols', protocol, COUNT(*)
+  FROM video_assets, jsonb_array_elements_text(protocols) AS protocol
+  GROUP BY protocol;
   
   -- Insert codec counts
   INSERT INTO facet_counts (facet_type, facet_value, count)
-  SELECT 'codec', codec_value, COUNT(*) -- Updated from 'codecs' to 'codec'
-  FROM video_assets, jsonb_array_elements_text(codec) AS codec_value -- Updated from codecs to codec
-  GROUP BY codec_value;
+  SELECT 'codecs', codec, COUNT(*)
+  FROM video_assets, jsonb_array_elements_text(codecs) AS codec
+  GROUP BY codec;
   
   -- Insert resolution counts
   INSERT INTO facet_counts (facet_type, facet_value, count)
-  SELECT 'resolution', resolution->>'label', COUNT(*) -- Updated from 'resolutions' to 'resolution'
+  SELECT 'resolutions', resolution->>'label', COUNT(*)
   FROM video_assets
   WHERE resolution IS NOT NULL AND resolution->>'label' IS NOT NULL
   GROUP BY resolution->>'label';
@@ -82,20 +82,20 @@ BEGIN
   
   -- Insert container counts
   INSERT INTO facet_counts (facet_type, facet_value, count)
-  SELECT 'container', container, COUNT(*) -- Updated from 'containers' to 'container'
+  SELECT 'containers', container, COUNT(*)
   FROM video_assets
   WHERE container IS NOT NULL
   GROUP BY container;
   
   -- Insert host counts
   INSERT INTO facet_counts (facet_type, facet_value, count)
-  SELECT 'host', host, COUNT(*) -- Updated from 'hosts' to 'host'
+  SELECT 'hosts', host, COUNT(*)
   FROM video_assets
   GROUP BY host;
   
   -- Insert scheme counts
   INSERT INTO facet_counts (facet_type, facet_value, count)
-  SELECT 'scheme', scheme, COUNT(*) -- Updated from 'schemes' to 'scheme'
+  SELECT 'schemes', scheme, COUNT(*)
   FROM video_assets
   GROUP BY scheme;
 END;

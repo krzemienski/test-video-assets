@@ -1,15 +1,12 @@
 "use client"
-import { Search, Grid3X3, List, SlidersHorizontal, Zap, Download } from "lucide-react"
+import { Search, Grid3X3, List, SlidersHorizontal } from "lucide-react"
 import React from "react"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
-import { AdvancedSearchPanel } from "./advanced-search-panel"
-import { ExportDialog } from "./export-dialog"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import type { Asset } from "@/lib/types"
 
 interface HeaderBarProps {
   searchQuery: string
@@ -21,13 +18,6 @@ interface HeaderBarProps {
   onClearFilters: () => void
   onFiltersClick: () => void
   activeFilterCount: number
-  savedSearches?: any[]
-  searchHistory?: string[]
-  onSaveSearch?: (name: string, query: string) => void
-  onLoadSearch?: (id: string) => string
-  onDeleteSearch?: (id: string) => void
-  onAddToHistory?: (query: string) => void
-  assets?: Asset[]
 }
 
 export function HeaderBar({
@@ -40,13 +30,6 @@ export function HeaderBar({
   onClearFilters,
   onFiltersClick,
   activeFilterCount,
-  savedSearches = [],
-  searchHistory = [],
-  onSaveSearch = () => {},
-  onLoadSearch = () => "",
-  onDeleteSearch = () => {},
-  onAddToHistory = () => {},
-  assets = [],
 }: HeaderBarProps) {
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -73,35 +56,10 @@ export function HeaderBar({
           <Input
             type="search"
             placeholder="Search assets... (Ctrl+K)"
-            className="pl-8 pr-10"
+            className="pl-8"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && searchQuery.trim()) {
-                onAddToHistory(searchQuery)
-              }
-            }}
           />
-          {/* Advanced Search Button */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="sm" className="absolute right-1 top-1 h-6 w-6 p-0" title="Advanced Search">
-                <Zap className="h-3 w-3" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-96" align="start">
-              <AdvancedSearchPanel
-                searchQuery={searchQuery}
-                onSearchChange={onSearchChange}
-                savedSearches={savedSearches}
-                searchHistory={searchHistory}
-                onSaveSearch={onSaveSearch}
-                onLoadSearch={onLoadSearch}
-                onDeleteSearch={onDeleteSearch}
-                onAddToHistory={onAddToHistory}
-              />
-            </PopoverContent>
-          </Popover>
         </div>
 
         {/* Active Filters */}
@@ -129,15 +87,6 @@ export function HeaderBar({
 
       {/* View Controls */}
       <div className="flex items-center gap-1">
-        <ExportDialog assets={assets} filteredCount={resultCount}>
-          <Button variant="ghost" size="sm" className="h-8 px-2" title="Export">
-            <Download className="h-4 w-4 mr-1" />
-            Export
-          </Button>
-        </ExportDialog>
-
-        <Separator orientation="vertical" className="h-4" />
-
         <Button variant="ghost" size="sm" className="h-8 w-8 p-0 relative" onClick={onFiltersClick} title="Filters">
           <SlidersHorizontal className="h-4 w-4" />
           {activeFilterCount > 0 && (

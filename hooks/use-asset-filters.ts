@@ -10,8 +10,6 @@ interface UseAssetFiltersProps {
 
 export function useAssetFilters({ assets, filters }: UseAssetFiltersProps) {
   const filteredAssets = React.useMemo(() => {
-    if (!assets) return []
-
     return assets.filter((asset) => {
       // Search filter
       if (filters.search.trim()) {
@@ -23,8 +21,8 @@ export function useAssetFilters({ assets, filters }: UseAssetFiltersProps) {
           asset.container || "",
           asset.notes || "",
           asset.resolution?.label || "",
-          ...asset.protocol,
-          ...(asset.codec || []),
+          ...asset.protocols,
+          ...(asset.codecs || []),
           ...asset.features,
         ]
           .join(" ")
@@ -36,20 +34,20 @@ export function useAssetFilters({ assets, filters }: UseAssetFiltersProps) {
       }
 
       // Protocol filter (OR within facet)
-      if (filters.protocol.length > 0) {
-        const hasMatchingProtocol = asset.protocol.some((protocol) => filters.protocol.includes(protocol))
+      if (filters.protocols.length > 0) {
+        const hasMatchingProtocol = asset.protocols.some((protocol) => filters.protocols.includes(protocol))
         if (!hasMatchingProtocol) return false
       }
 
       // Codec filter (OR within facet)
-      if (filters.codec.length > 0) {
-        const hasMatchingCodec = asset.codec?.some((codec) => filters.codec.includes(codec))
+      if (filters.codecs.length > 0) {
+        const hasMatchingCodec = asset.codecs?.some((codec) => filters.codecs.includes(codec))
         if (!hasMatchingCodec) return false
       }
 
       // Resolution filter (OR within facet)
-      if (filters.resolution.length > 0) {
-        const hasMatchingResolution = asset.resolution?.label && filters.resolution.includes(asset.resolution.label)
+      if (filters.resolutions.length > 0) {
+        const hasMatchingResolution = asset.resolution?.label && filters.resolutions.includes(asset.resolution.label)
         if (!hasMatchingResolution) return false
       }
 
@@ -60,20 +58,20 @@ export function useAssetFilters({ assets, filters }: UseAssetFiltersProps) {
       }
 
       // Container filter (OR within facet)
-      if (filters.container.length > 0) {
-        const hasMatchingContainer = asset.container && filters.container.includes(asset.container)
+      if (filters.containers.length > 0) {
+        const hasMatchingContainer = asset.container && filters.containers.includes(asset.container)
         if (!hasMatchingContainer) return false
       }
 
       // Host filter (OR within facet)
-      if (filters.host.length > 0) {
-        const hasMatchingHost = filters.host.includes(asset.host)
+      if (filters.hosts.length > 0) {
+        const hasMatchingHost = filters.hosts.includes(asset.host)
         if (!hasMatchingHost) return false
       }
 
       // Scheme filter (OR within facet)
-      if (filters.scheme.length > 0) {
-        const hasMatchingScheme = filters.scheme.includes(asset.scheme)
+      if (filters.schemes.length > 0) {
+        const hasMatchingScheme = filters.schemes.includes(asset.scheme)
         if (!hasMatchingScheme) return false
       }
 
@@ -83,32 +81,32 @@ export function useAssetFilters({ assets, filters }: UseAssetFiltersProps) {
 
   const activeFilterCount = React.useMemo(() => {
     return (
-      filters.protocol.length +
-      filters.codec.length +
-      filters.resolution.length +
+      filters.protocols.length +
+      filters.codecs.length +
+      filters.resolutions.length +
       filters.hdr.length +
-      filters.container.length +
-      filters.host.length +
-      filters.scheme.length
+      filters.containers.length +
+      filters.hosts.length +
+      filters.schemes.length
     )
   }, [filters])
 
   const activeFilterLabels = React.useMemo(() => {
     const labels: string[] = []
 
-    filters.protocol.forEach((protocol) => labels.push(protocol.toUpperCase()))
-    filters.codec.forEach((codec) => {
+    filters.protocols.forEach((protocol) => labels.push(protocol.toUpperCase()))
+    filters.codecs.forEach((codec) => {
       const label = codec === "avc" ? "H.264" : codec === "hevc" ? "HEVC" : codec.toUpperCase()
       labels.push(label)
     })
-    filters.resolution.forEach((resolution) => labels.push(resolution))
+    filters.resolutions.forEach((resolution) => labels.push(resolution))
     filters.hdr.forEach((hdr) => {
       const label = hdr === "dovi" ? "Dolby Vision" : hdr.toUpperCase()
       labels.push(label)
     })
-    filters.container.forEach((container) => labels.push(container.toUpperCase()))
-    filters.scheme.forEach((scheme) => labels.push(scheme.toUpperCase()))
-    filters.host.forEach((host) => labels.push(host))
+    filters.containers.forEach((container) => labels.push(container.toUpperCase()))
+    filters.schemes.forEach((scheme) => labels.push(scheme.toUpperCase()))
+    filters.hosts.forEach((host) => labels.push(host))
 
     return labels
   }, [filters])

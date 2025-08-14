@@ -1,26 +1,15 @@
 import fs from "fs"
 import path from "path"
+import { createHash } from "crypto"
 
 // Fetch and process the CSV data
 async function processVideoAssets() {
-  // Read from repository CSV file
-  const csvPath = path.join(process.cwd(), "data", "video-test-assets.csv")
+  const csvUrl =
+    "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/FINAL-consolidated-video-test-assets-jdHni20uYFY2xAC7Hzgw7CvJh9lSDt.csv"
 
-  console.log("Reading CSV data from repository...")
-
-  let csvText
-  try {
-    csvText = fs.readFileSync(csvPath, "utf-8")
-  } catch (error) {
-    console.error("Failed to read CSV file from repository:", error)
-    console.log("Falling back to external URL...")
-
-    // Fallback to external URL if repository file doesn't exist
-    const csvUrl =
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/FINAL-consolidated-video-test-assets-jdHni20uYFY2xAC7Hzgw7CvJh9lSDt.csv"
-    const response = await fetch(csvUrl)
-    csvText = await response.text()
-  }
+  console.log("Fetching CSV data...")
+  const response = await fetch(csvUrl)
+  const csvText = await response.text()
 
   // Parse CSV (simple implementation)
   const lines = csvText.split("\n").filter((line) => line.trim())
@@ -31,13 +20,13 @@ async function processVideoAssets() {
 
   const assets = []
   const facetCounts = {
-    protocol: {},
-    codec: {},
-    resolution: {},
+    protocols: {},
+    codecs: {},
+    resolutions: {},
     hdr: {},
-    container: {},
-    host: {},
-    scheme: {},
+    containers: {},
+    hosts: {},
+    schemes: {},
   }
 
   for (let i = 1; i < lines.length; i++) {
@@ -66,15 +55,14 @@ async function processVideoAssets() {
       scheme = "unknown"
     }
 
-    const timestamp = Date.now().toString(36)
-    const urlHash = await generateHash(normalizedUrl)
-    const id = `${urlHash.substring(0, 8)}-${timestamp}`
+    // Generate stable ID
+    const id = createHash("md5").update(normalizedUrl).digest("hex").substring(0, 8)
 
     // Extract protocols
-    const protocol = extractProtocols(formatProtocol, notes)
+    const protocols = extractProtocols(formatProtocol, notes)
 
     // Extract codecs
-    const codec = extractCodecs(formatProtocol, notes)
+    const codecs = extractCodecs(formatProtocol, notes)
 
     // Extract resolution
     const resolution = extractResolution(formatProtocol, notes)
@@ -94,8 +82,8 @@ async function processVideoAssets() {
       host,
       scheme,
       category: category?.trim() || "Uncategorized",
-      protocol,
-      codec,
+      protocols,
+      codecs,
       resolution,
       hdr,
       container,
@@ -106,14 +94,14 @@ async function processVideoAssets() {
     assets.push(asset)
 
     // Update facet counts
-    protocol.forEach((p) => (facetCounts.protocol[p] = (facetCounts.protocol[p] || 0) + 1))
-    codec.forEach((c) => (facetCounts.codec[c] = (facetCounts.codec[c] || 0) + 1))
+    protocols.forEach((p) => (facetCounts.protocols[p] = (facetCounts.protocols[p] || 0) + 1))
+    codecs.forEach((c) => (facetCounts.codecs[c] = (facetCounts.codecs[c] || 0) + 1))
     if (resolution?.label)
-      facetCounts.resolution[resolution.label] = (facetCounts.resolution[resolution.label] || 0) + 1
+      facetCounts.resolutions[resolution.label] = (facetCounts.resolutions[resolution.label] || 0) + 1
     if (hdr) facetCounts.hdr[hdr] = (facetCounts.hdr[hdr] || 0) + 1
-    if (container) facetCounts.container[container] = (facetCounts.container[container] || 0) + 1
-    facetCounts.host[host] = (facetCounts.host[host] || 0) + 1
-    facetCounts.scheme[scheme] = (facetCounts.scheme[scheme] || 0) + 1
+    if (container) facetCounts.containers[container] = (facetCounts.containers[container] || 0) + 1
+    facetCounts.hosts[host] = (facetCounts.hosts[host] || 0) + 1
+    facetCounts.schemes[scheme] = (facetCounts.schemes[scheme] || 0) + 1
   }
 
   // Sort facet counts
@@ -127,7 +115,7 @@ async function processVideoAssets() {
   const metadata = {
     totalAssets: assets.length,
     buildTimestamp: new Date().toISOString(),
-    sourceFile: "data/video-test-assets.csv",
+    sourceUrl: csvUrl,
     version: "1.0.0",
   }
 
@@ -139,7 +127,9 @@ async function processVideoAssets() {
 
   // Write output files
   fs.writeFileSync(path.join(publicDir, "assets.json"), JSON.stringify(assets, null, 2))
+
   fs.writeFileSync(path.join(publicDir, "facets.json"), JSON.stringify(facetCounts, null, 2))
+
   fs.writeFileSync(path.join(publicDir, "metadata.json"), JSON.stringify(metadata, null, 2))
 
   console.log(`✅ Processed ${assets.length} assets`)
@@ -278,14 +268,6 @@ function extractFeatures(formatProtocol, notes) {
   if (text.includes("vr") || text.includes("360")) features.push("VR/360")
 
   return features
-}
-
-async function generateHash(text) {
-  const encoder = new TextEncoder()
-  const data = encoder.encode(text)
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
 }
 
 // Run the script
