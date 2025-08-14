@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import crypto from "crypto"
 
 export async function GET() {
   try {
@@ -26,7 +27,7 @@ export async function POST() {
 // Fetch and process the CSV data
 async function processVideoAssets() {
   const csvUrl =
-    "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/FINAL-consolidated-video-test-assets-jdHni20uYFY2xAC7Hzgw7CvJh9lSDt.csv"
+    "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/assets.normalized-EXqw5Ks31sL26nezp5ae9gS83CNLUO.csv"
 
   try {
     console.log("📥 Fetching CSV data from:", csvUrl)
@@ -83,68 +84,57 @@ async function processVideoAssets() {
     for (let i = 1; i < lines.length; i++) {
       try {
         const values = parseCSVLine(lines[i])
-        if (values.length < 4) {
-          console.warn(`⚠️ Skipping row ${i}: insufficient columns (${values.length})`)
+        if (values.length < 13) {
+          console.warn(`⚠️ Skipping row ${i}: insufficient columns (${values.length}, expected 13)`)
           continue
         }
 
-        const [url, category, formatProtocol, notes] = values
+        const [
+          id,
+          url,
+          host,
+          scheme,
+          category,
+          protocolStr,
+          container,
+          codecStr,
+          resolutionWidth,
+          resolutionHeight,
+          resolutionLabel,
+          hdr,
+          featuresStr,
+          notes,
+        ] = values
+
         if (!url || url.trim() === "") {
           console.warn(`⚠️ Skipping row ${i}: empty URL`)
           continue
         }
 
-        // Normalize URL
-        let normalizedUrl = url.trim()
-        if (!normalizedUrl.match(/^https?:\/\//)) {
-          normalizedUrl = "https://" + normalizedUrl
-        }
+        const protocol = protocolStr ? protocolStr.split(";").filter((p) => p.trim()) : ["file"]
+        const codec = codecStr ? codecStr.split(";").filter((c) => c.trim()) : []
+        const features = featuresStr ? featuresStr.split(";").filter((f) => f.trim()) : []
 
-        // Extract host and scheme
-        let host = "unknown"
-        let scheme = "https"
-        try {
-          const urlObj = new URL(normalizedUrl)
-          host = urlObj.hostname
-          scheme = urlObj.protocol.replace(":", "")
-        } catch (e) {
-          console.warn(`⚠️ Invalid URL in row ${i}: ${normalizedUrl}`)
-          host = "unknown"
-          scheme = "unknown"
-        }
-
-        // Generate stable ID
-        const id = await generateId(normalizedUrl)
-
-        // Extract protocols
-        const protocol = extractProtocols(formatProtocol, notes)
-
-        // Extract codecs
-        const codec = extractCodecs(formatProtocol, notes)
-
-        // Extract resolution
-        const resolution = extractResolution(formatProtocol, notes)
-
-        // Extract HDR info
-        const hdr = extractHDR(formatProtocol, notes)
-
-        // Extract container
-        const container = extractContainer(normalizedUrl, formatProtocol, notes)
-
-        // Extract features
-        const features = extractFeatures(formatProtocol, notes)
+        const resolution =
+          resolutionWidth && resolutionHeight
+            ? {
+                width: Number.parseInt(resolutionWidth) || null,
+                height: Number.parseInt(resolutionHeight) || null,
+                label: resolutionLabel || null,
+              }
+            : null
 
         const asset = {
-          id,
-          url: normalizedUrl,
-          host,
-          scheme,
+          id: id?.trim() || (await generateId(url.trim())),
+          url: url.trim(),
+          host: host?.trim() || "unknown",
+          scheme: scheme?.trim() || "https",
           category: category?.trim() || "Uncategorized",
           protocol,
           codec,
           resolution,
-          hdr,
-          container,
+          hdr: hdr?.trim() || "sdr",
+          container: container?.trim() || null,
           notes: notes?.trim() || "",
           features,
         }
@@ -152,15 +142,14 @@ async function processVideoAssets() {
         assets.push(asset)
         processedCount++
 
-        // Update facet counts
         protocol.forEach((p) => (facetCounts.protocol[p] = (facetCounts.protocol[p] || 0) + 1))
         codec.forEach((c) => (facetCounts.codec[c] = (facetCounts.codec[c] || 0) + 1))
         if (resolution?.label)
           facetCounts.resolution[resolution.label] = (facetCounts.resolution[resolution.label] || 0) + 1
-        if (hdr) facetCounts.hdr[hdr] = (facetCounts.hdr[hdr] || 0) + 1
-        if (container) facetCounts.container[container] = (facetCounts.container[container] || 0) + 1
-        facetCounts.host[host] = (facetCounts.host[host] || 0) + 1
-        facetCounts.scheme[scheme] = (facetCounts.scheme[scheme] || 0) + 1
+        if (asset.hdr) facetCounts.hdr[asset.hdr] = (facetCounts.hdr[asset.hdr] || 0) + 1
+        if (asset.container) facetCounts.container[asset.container] = (facetCounts.container[asset.container] || 0) + 1
+        facetCounts.host[asset.host] = (facetCounts.host[asset.host] || 0) + 1
+        facetCounts.scheme[asset.scheme] = (facetCounts.scheme[asset.scheme] || 0) + 1
 
         if (processedCount % 100 === 0) {
           console.log(
@@ -169,12 +158,10 @@ async function processVideoAssets() {
         }
       } catch (rowError) {
         console.error(`❌ Error processing row ${i}:`, rowError)
-        // Continue processing other rows
         continue
       }
     }
 
-    // Sort facet counts
     Object.keys(facetCounts).forEach((key) => {
       const sorted = Object.entries(facetCounts[key])
         .sort(([, a], [, b]) => (b as number) - (a as number))
@@ -199,7 +186,6 @@ async function processVideoAssets() {
   }
 }
 
-// Helper functions
 function parseCSVLine(line: string) {
   const result = []
   let current = ""
@@ -251,7 +237,6 @@ function extractCodecs(formatProtocol: string, notes: string) {
 function extractResolution(formatProtocol: string, notes: string) {
   const text = `${formatProtocol} ${notes}`
 
-  // Look for specific resolution patterns
   const resolutionPatterns = [
     { pattern: /\b4320p\b/i, width: 7680, height: 4320, label: "8K" },
     { pattern: /\b2160p\b|4K|UHD/i, width: 3840, height: 2160, label: "4K" },
@@ -269,14 +254,12 @@ function extractResolution(formatProtocol: string, notes: string) {
     }
   }
 
-  // Look for WxH patterns
   const dimensionMatch = text.match(/\b(\d{3,4})[×x](\d{3,4})\b/)
   if (dimensionMatch) {
     const width = Number.parseInt(dimensionMatch[1])
     const height = Number.parseInt(dimensionMatch[2])
     let label = `${width}x${height}`
 
-    // Convert to standard labels
     if (height >= 2160) label = "4K"
     else if (height >= 1440) label = "1440p"
     else if (height >= 1080) label = "1080p"
@@ -331,8 +314,17 @@ function extractFeatures(formatProtocol: string, notes: string) {
 }
 
 async function generateId(input: string): Promise<string> {
-  // Use Node.js crypto module for server-side hashing
-  const crypto = await import('crypto')
-  const hash = crypto.createHash('sha256').update(input).digest('hex')
-  return hash.substring(0, 8)
+  try {
+    const hash = crypto.createHash("sha256").update(input).digest("hex")
+    return hash.substring(0, 16)
+  } catch (error) {
+    console.error("Error generating ID with crypto, falling back to simple hash:", error)
+    let hash = 0
+    for (let i = 0; i < input.length; i++) {
+      const char = input.charCodeAt(i)
+      hash = (hash << 5) - hash + char
+      hash = hash & hash
+    }
+    return Math.abs(hash).toString(16).padStart(8, "0")
+  }
 }

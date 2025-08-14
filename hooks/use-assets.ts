@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import type { Asset, FacetCounts, Metadata } from "@/lib/types"
+import { createClient } from "@/lib/supabase/client"
 
 interface UseAssetsReturn {
   assets: Asset[]
@@ -9,39 +10,6 @@ interface UseAssetsReturn {
   metadata: Metadata | null
   isLoading: boolean
   error: string | null
-}
-
-function isValidUrl(urlString: string): boolean {
-  try {
-    new URL(urlString)
-    return true
-  } catch {
-    return false
-  }
-}
-
-function validateAsset(asset: any): asset is Asset {
-  return (
-    asset &&
-    typeof asset.id === "string" &&
-    typeof asset.url === "string" &&
-    isValidUrl(asset.url) &&
-    Array.isArray(asset.protocol) &&
-    Array.isArray(asset.codec)
-  )
-}
-
-function generateUniqueId(url: string, index?: number): string {
-  const timestamp = Date.now()
-  const random = Math.random().toString(36).substring(2, 8)
-  const urlHash = url
-    .split("")
-    .reduce((a, b) => {
-      a = (a << 5) - a + b.charCodeAt(0)
-      return a & a
-    }, 0)
-    .toString(36)
-  return `${urlHash}-${timestamp}-${random}${index !== undefined ? `-${index}` : ""}`
 }
 
 export function useAssets(): UseAssetsReturn {
@@ -57,226 +25,226 @@ export function useAssets(): UseAssetsReturn {
         setIsLoading(true)
         setError(null)
 
-        let assetsData: Asset[] = []
-        let facetsData: FacetCounts | null = null
-        let metadataData: Metadata | null = null
+        console.log("🚀 Loading assets from Supabase...")
 
-        try {
-          const assetsResponse = await fetch("/data/assets.normalized.json")
-          if (assetsResponse.ok) {
-            const rawData = await assetsResponse.json()
-            assetsData = Array.isArray(rawData)
-              ? rawData
-                  .map((asset, index) => ({
-                    ...asset,
-                    id: asset.id || generateUniqueId(asset.url, index),
-                  }))
-                  .filter(validateAsset)
-              : []
-            console.log(`Loaded ${assetsData.length} assets from normalized data`)
-          }
-        } catch (fetchError) {
-          console.log("Normalized assets JSON not found, trying legacy paths")
+        const supabase = createClient()
+
+        // Load assets from Supabase
+        let assetsData
+        const { data: initialAssetsData, error: assetsError } = await supabase
+          .from("video_assets")
+          .select("*")
+          .order("created_at", { ascending: false })
+
+        if (assetsError) {
+          throw new Error(`Failed to load assets: ${assetsError.message}`)
         }
 
-        try {
-          const facetsResponse = await fetch("/data/facets.normalized.json")
-          if (facetsResponse.ok) {
-            facetsData = await facetsResponse.json()
-            console.log("Loaded facet counts from normalized data")
-          }
-        } catch (fetchError) {
-          console.log("Normalized facets JSON not found")
-        }
+        console.log(`📊 Loaded ${initialAssetsData?.length || 0} assets from Supabase`)
 
-        if (assetsData.length === 0) {
+        if (!initialAssetsData || initialAssetsData.length === 0) {
+          console.log("🔄 Database is empty, auto-importing assets from CSV...")
+
           try {
-            const assetsResponse = await fetch("/assets.json")
-            if (assetsResponse.ok) {
-              const rawData = await assetsResponse.json()
-              assetsData = Array.isArray(rawData)
-                ? rawData
-                    .map((asset, index) => ({
-                      ...asset,
-                      id: asset.id || generateUniqueId(asset.url, index),
-                    }))
-                    .filter(validateAsset)
-                : []
+            console.log("🧹 Clearing existing data...")
+            await supabase.from("facet_counts").delete().neq("id", 0)
+            await supabase.from("video_assets").delete().neq("id", "")
+
+            // Fetch CSV data
+            const csvResponse = await fetch(
+              "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/assets.normalized-oQtWhHTu7K9DUXbH2sSeuyoKFkypUB.csv",
+            )
+            if (!csvResponse.ok) {
+              throw new Error(`Failed to fetch CSV: ${csvResponse.statusText}`)
             }
-          } catch (fetchError) {
-            console.log("Legacy assets JSON not found, trying API route")
-          }
-        }
 
-        if (!facetsData) {
-          try {
-            const facetsResponse = await fetch("/facets.json")
-            if (facetsResponse.ok) {
-              facetsData = await facetsResponse.json()
+            const csvText = await csvResponse.text()
+            const lines = csvText.split("\n").filter((line) => line.trim())
+            const headers = lines[0].split(",").map((h) => h.trim().replace(/"/g, ""))
+
+            console.log("📋 CSV headers:", headers)
+            console.log(`📊 Processing ${lines.length - 1} assets from CSV...`)
+
+            const csvAssets = []
+            const facetCountsMap = {
+              protocol: new Map(),
+              codec: new Map(),
+              resolution: new Map(),
+              hdr: new Map(),
+              container: new Map(),
+              host: new Map(),
+              scheme: new Map(),
             }
-          } catch (fetchError) {
-            console.log("Legacy facets JSON not found")
-          }
-        }
 
-        try {
-          const metadataResponse = await fetch("/metadata.json")
-          if (metadataResponse.ok) {
-            metadataData = await metadataResponse.json()
-          }
-        } catch (fetchError) {
-          console.log("Metadata JSON not found")
-        }
+            for (let i = 1; i < lines.length; i++) {
+              const values = lines[i].split(",").map((v) => v.trim().replace(/"/g, ""))
+              const row: any = {}
 
-        if (assetsData.length === 0) {
-          try {
-            console.log("Trying API route for asset processing...")
-            const apiResponse = await fetch("/api/process-assets")
-            if (apiResponse.ok) {
-              const apiData = await apiResponse.json()
-              if (apiData.assets && Array.isArray(apiData.assets)) {
-                assetsData = apiData.assets
-                  .map((asset, index) => ({
-                    ...asset,
-                    id: asset.id || generateUniqueId(asset.url, index),
-                  }))
-                  .filter(validateAsset)
-                facetsData = apiData.facetCounts || null
-                metadataData = apiData.metadata || null
-                console.log(`Loaded ${assetsData.length} assets from API`)
+              headers.forEach((header, index) => {
+                row[header] = values[index] || ""
+              })
+
+              // Transform CSV row to database format
+              const asset = {
+                id: row.id,
+                url: row.url,
+                host: row.host || "",
+                scheme: row.scheme || "https",
+                category: row.category || "",
+                protocols: row.protocol ? [row.protocol] : [], // Convert singular to plural array
+                container: row.container || null,
+                codecs: row.codec ? [row.codec] : [], // Convert singular to plural array
+                resolution:
+                  row["resolution.width"] && row["resolution.height"]
+                    ? {
+                        width: Number.parseInt(row["resolution.width"]) || 0,
+                        height: Number.parseInt(row["resolution.height"]) || 0,
+                        label: row["resolution.label"] || "",
+                      }
+                    : null,
+                hdr: row.hdr || "sdr",
+                notes: row.notes || "",
+                features: row.features ? [row.features] : [],
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
               }
-            } else {
-              console.error("API response not ok:", apiResponse.status, apiResponse.statusText)
+
+              csvAssets.push(asset)
+
+              // Count facets
+              if (asset.protocols)
+                asset.protocols.forEach((p) =>
+                  facetCountsMap.protocol.set(p, (facetCountsMap.protocol.get(p) || 0) + 1),
+                )
+              if (asset.codecs)
+                asset.codecs.forEach((c) => facetCountsMap.codec.set(c, (facetCountsMap.codec.get(c) || 0) + 1))
+              if (asset.resolution?.label)
+                facetCountsMap.resolution.set(
+                  asset.resolution.label,
+                  (facetCountsMap.resolution.get(asset.resolution.label) || 0) + 1,
+                )
+              if (asset.hdr) facetCountsMap.hdr.set(asset.hdr, (facetCountsMap.hdr.get(asset.hdr) || 0) + 1)
+              if (asset.container)
+                facetCountsMap.container.set(asset.container, (facetCountsMap.container.get(asset.container) || 0) + 1)
+              if (asset.host) facetCountsMap.host.set(asset.host, (facetCountsMap.host.get(asset.host) || 0) + 1)
+              if (asset.scheme)
+                facetCountsMap.scheme.set(asset.scheme, (facetCountsMap.scheme.get(asset.scheme) || 0) + 1)
             }
-          } catch (apiError) {
-            console.error("API route failed:", apiError)
+
+            const batchSize = 100
+            for (let i = 0; i < csvAssets.length; i += batchSize) {
+              const batch = csvAssets.slice(i, i + batchSize)
+              const { error: insertError } = await supabase.from("video_assets").insert(batch)
+
+              if (insertError) {
+                console.error(`❌ Error inserting batch ${i / batchSize + 1}:`, insertError)
+                throw new Error(`Failed to insert batch ${i / batchSize + 1}: ${insertError.message}`)
+              } else {
+                console.log(`✅ Inserted batch ${i / batchSize + 1} (${batch.length} assets)`)
+              }
+            }
+
+            // Insert facet counts
+            const facetRows = []
+            for (const [facetType, counts] of Object.entries(facetCountsMap)) {
+              for (const [value, count] of counts.entries()) {
+                facetRows.push({
+                  facet_type: facetType,
+                  facet_value: value,
+                  count: count,
+                  updated_at: new Date().toISOString(),
+                })
+              }
+            }
+
+            if (facetRows.length > 0) {
+              const { error: facetError } = await supabase.from("facet_counts").insert(facetRows)
+
+              if (facetError) {
+                console.error("❌ Error inserting facet counts:", facetError)
+                throw new Error(`Failed to insert facet counts: ${facetError.message}`)
+              } else {
+                console.log(`✅ Inserted ${facetRows.length} facet count entries`)
+              }
+            }
+
+            console.log("🎉 Auto-import completed successfully!")
+
+            // Reload data after import
+            const { data: newAssetsData } = await supabase
+              .from("video_assets")
+              .select("*")
+              .order("created_at", { ascending: false })
+
+            assetsData = newAssetsData
+          } catch (importError) {
+            console.error("❌ Auto-import failed:", importError)
+            throw new Error(
+              `Auto-import failed: ${importError instanceof Error ? importError.message : "Unknown error"}`,
+            )
           }
+        } else {
+          assetsData = initialAssetsData
         }
 
-        if (assetsData.length === 0) {
-          console.log("Using enhanced mock data for testing")
-          const mockAssets = [
-            {
-              id: generateUniqueId(
-                "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8",
-                0,
-              ),
-              url: "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8",
-              host: "devstreaming-cdn.apple.com",
-              scheme: "https" as const,
-              category: "Apple HLS Advanced Example",
-              protocol: ["hls"] as const,
-              container: "mp4" as const,
-              codec: ["avc"] as const,
-              resolution: { width: 1920, height: 1080, label: "1080p" },
-              hdr: "sdr" as const,
-              notes: "Advanced HLS example with multiple bitrates",
-              features: ["multi-bitrate"],
-            },
-            {
-              id: generateUniqueId(
-                "https://bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd",
-                1,
-              ),
-              url: "https://bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd",
-              host: "bitmovin-a.akamaihd.net",
-              scheme: "https" as const,
-              category: "Bitmovin DASH Example",
-              protocol: ["dash"] as const,
-              container: "mp4" as const,
-              codec: ["avc"] as const,
-              resolution: { width: 1920, height: 1080, label: "1080p" },
-              hdr: "sdr" as const,
-              notes: "DASH streaming example",
-              features: ["adaptive"],
-            },
-            {
-              id: generateUniqueId(
-                "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-                2,
-              ),
-              url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-              host: "commondatastorage.googleapis.com",
-              scheme: "https" as const,
-              category: "Big Buck Bunny",
-              protocol: ["file"] as const,
-              container: "mp4" as const,
-              codec: ["avc"] as const,
-              resolution: { width: 1920, height: 1080, label: "1080p" },
-              hdr: "sdr" as const,
-              notes: "Direct MP4 file for testing",
-              features: ["direct-file"],
-            },
-            {
-              id: generateUniqueId(
-                "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
-                3,
-              ),
-              url: "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
-              host: "demo.unified-streaming.com",
-              scheme: "https" as const,
-              category: "Tears of Steel",
-              protocol: ["hls"] as const,
-              container: "ts" as const,
-              codec: ["hevc"] as const,
-              resolution: { width: 3840, height: 2160, label: "4K" },
-              hdr: "hdr10" as const,
-              notes: "4K HDR10 HLS stream",
-              features: ["4k", "hdr"],
-            },
-            {
-              id: generateUniqueId("https://dash.akamaized.net/akamai/av1/av1.mpd", 4),
-              url: "https://dash.akamaized.net/akamai/av1/av1.mpd",
-              host: "dash.akamaized.net",
-              scheme: "https" as const,
-              category: "AV1 Test Stream",
-              protocol: ["dash"] as const,
-              container: "mp4" as const,
-              codec: ["av1"] as const,
-              resolution: { width: 1920, height: 1080, label: "1080p" },
-              hdr: "sdr" as const,
-              notes: "AV1 codec test stream",
-              features: ["av1", "next-gen"],
-            },
-          ]
+        // Load facet counts from Supabase
+        const { data: facetsData, error: facetsError } = await supabase.from("facet_counts").select("*")
 
-          assetsData = mockAssets.filter(validateAsset)
-
-          facetsData = {
-            protocol: { hls: 2, dash: 2, file: 1 },
-            codec: { avc: 3, hevc: 1, av1: 1 },
-            resolution: { "1080p": 4, "4K": 1 },
-            hdr: { sdr: 4, hdr10: 1 },
-            container: { mp4: 4, ts: 1 },
-            host: {
-              "devstreaming-cdn.apple.com": 1,
-              "bitmovin-a.akamaihd.net": 1,
-              "commondatastorage.googleapis.com": 1,
-              "demo.unified-streaming.com": 1,
-              "dash.akamaized.net": 1,
-            },
-            scheme: { https: 5 },
-          }
-
-          metadataData = {
-            totalAssets: 5,
-            buildTimestamp: new Date().toISOString(),
-            sourceUrl: "mock-data-enhanced",
-            version: "1.0.0",
-          }
+        if (facetsError) {
+          console.warn("Failed to load facet counts:", facetsError.message)
         }
 
-        console.log(`Final asset count: ${assetsData.length}`)
-        console.log("Sample asset:", assetsData[0])
-        console.log("Facet counts:", facetsData)
+        const transformedAssets: Asset[] = (assetsData || []).map((dbAsset) => ({
+          id: dbAsset.id,
+          url: dbAsset.url,
+          host: dbAsset.host || "",
+          scheme: dbAsset.scheme || "https",
+          category: dbAsset.category || "",
+          protocol: dbAsset.protocols || [], // Convert plural to singular
+          container: dbAsset.container || null,
+          codec: dbAsset.codecs || [], // Convert plural to singular
+          resolution: dbAsset.resolution || null,
+          hdr: dbAsset.hdr || "sdr",
+          notes: dbAsset.notes || "",
+          features: dbAsset.features || [],
+        }))
 
-        setAssets(assetsData)
-        setFacetCounts(facetsData)
-        setMetadata(metadataData)
+        const transformedFacetCounts: FacetCounts = {
+          protocol: {},
+          codec: {},
+          resolution: {},
+          hdr: {},
+          container: {},
+          host: {},
+          scheme: {},
+        }
+
+        if (facetsData) {
+          facetsData.forEach((facet) => {
+            const facetType = facet.facet_type as keyof FacetCounts
+            if (transformedFacetCounts[facetType]) {
+              transformedFacetCounts[facetType][facet.facet_value] = facet.count
+            }
+          })
+        }
+
+        const finalMetadata: Metadata = {
+          totalAssets: transformedAssets.length,
+          buildTimestamp: new Date().toISOString(),
+          sourceUrl: "supabase://video_assets",
+          version: "1.0.0",
+        }
+
+        console.log(`✅ Successfully loaded ${transformedAssets.length} assets from Supabase`)
+        console.log("📊 Sample asset:", transformedAssets[0])
+        console.log("🏷️ Facet counts:", transformedFacetCounts)
+
+        setAssets(transformedAssets)
+        setFacetCounts(transformedFacetCounts)
+        setMetadata(finalMetadata)
       } catch (err) {
-        console.error("Error loading assets:", err)
-        const errorMessage = err instanceof Error ? err.message : "Failed to load assets"
-        setError(errorMessage)
+        console.error("❌ Error loading assets from Supabase:", err)
+        setError(err instanceof Error ? err.message : "Failed to load assets")
 
         setAssets([])
         setFacetCounts(null)

@@ -8,7 +8,7 @@ This is a Next.js 15 application for browsing and filtering video test assets. I
 
 ## Development Commands
 
-```bash
+\`\`\`bash
 # Install dependencies (uses npm)
 npm install
 
@@ -23,7 +23,7 @@ npm run start
 
 # Run linting
 npm run lint
-```
+\`\`\`
 
 ## Architecture Overview
 

@@ -49,14 +49,14 @@ You can also trigger a deployment manually:
 ### Local Deployment
 
 To deploy from your local machine:
-```bash
+\`\`\`bash
 npm run deploy
-```
+\`\`\`
 
 Or for preview deployments:
-```bash
+\`\`\`bash
 npm run deploy:preview
-```
+\`\`\`
 
 ## Environment Variables
 
@@ -89,7 +89,7 @@ Check that the CSV file URL in `/app/api/process-assets/route.ts` is accessible 
 
 ## Project Structure
 
-```
+\`\`\`
 .github/workflows/
 ├── deploy-vercel.yml    # Auto-deployment to Vercel
 ├── claude.yml           # Claude Code integration
@@ -100,4 +100,4 @@ Check that the CSV file URL in `/app/api/process-assets/route.ts` is accessible 
 
 vercel.json             # Vercel configuration
 .npmrc                  # npm configuration (legacy peer deps)
-```
+\`\`\`
