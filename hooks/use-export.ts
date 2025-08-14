@@ -52,8 +52,8 @@ export function useExport() {
       "URL",
       "Host",
       "Scheme",
-      "Protocols",
-      "Codecs",
+      "Protocol", // Updated from Protocols to Protocol
+      "Codec", // Updated from Codecs to Codec
       "Container",
       "Resolution",
       "HDR",
@@ -78,12 +78,12 @@ export function useExport() {
           `"${asset.url}"`,
           `"${asset.host}"`,
           `"${asset.scheme}"`,
-          `"${asset.protocols.join("; ")}"`,
-          `"${asset.codecs?.join("; ") || ""}"`,
+          `"${asset.protocol?.join("; ") || ""}"`, // Updated from protocols to protocol
+          `"${asset.codec?.join("; ") || ""}"`, // Updated from codecs to codec
           `"${asset.container || ""}"`,
           `"${asset.resolution?.label || asset.resolution ? `${asset.resolution.width}x${asset.resolution.height}` : ""}"`,
           `"${asset.hdr || ""}"`,
-          `"${asset.features.join("; ")}"`,
+          `"${asset.features?.join("; ") || ""}"`, // Added optional chaining
           `"${asset.notes || ""}"`,
         ]
 
@@ -120,8 +120,8 @@ export function useExport() {
       "URL",
       "Host",
       "Scheme",
-      "Protocols",
-      "Codecs",
+      "Protocol", // Updated from Protocols to Protocol
+      "Codec", // Updated from Codecs to Codec
       "Container",
       "Resolution",
       "HDR",
@@ -146,12 +146,12 @@ export function useExport() {
           asset.url,
           asset.host,
           asset.scheme,
-          asset.protocols.join("; "),
-          asset.codecs?.join("; ") || "",
+          asset.protocol?.join("; ") || "", // Updated from protocols to protocol
+          asset.codec?.join("; ") || "", // Updated from codecs to codec
           asset.container || "",
           asset.resolution?.label || asset.resolution ? `${asset.resolution.width}x${asset.resolution.height}` : "",
           asset.hdr || "",
-          asset.features.join("; "),
+          asset.features?.join("; ") || "", // Added optional chaining
           asset.notes || "",
         ]
 
@@ -183,12 +183,12 @@ export function useExport() {
           `URL: ${asset.url}`,
           `Host: ${asset.host}`,
           `Scheme: ${asset.scheme}`,
-          `Protocols: ${asset.protocols.join(", ")}`,
-          `Codecs: ${asset.codecs?.join(", ") || "Unknown"}`,
+          `Protocol: ${asset.protocol?.join(", ") || "Unknown"}`, // Updated from Protocols to Protocol
+          `Codec: ${asset.codec?.join(", ") || "Unknown"}`, // Updated from Codecs to Codec
           `Container: ${asset.container || "Unknown"}`,
           `Resolution: ${asset.resolution?.label || asset.resolution ? `${asset.resolution.width}x${asset.resolution.height}` : "Unknown"}`,
           `HDR: ${asset.hdr || "SDR"}`,
-          `Features: ${asset.features.join(", ")}`,
+          `Features: ${asset.features?.join(", ") || "None"}`, // Added optional chaining
           `Notes: ${asset.notes || "None"}`,
         ]
 

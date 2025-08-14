@@ -45,8 +45,8 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
 
   const handleCopySummary = async () => {
     const summary = [
-      asset.protocols?.map((p) => p.toUpperCase()).join(" + "),
-      asset.codecs?.map((c) => c.toUpperCase()).join(" + "),
+      asset.protocol?.map((p) => p.toUpperCase()).join(" + "),
+      asset.codec?.map((c) => c.toUpperCase()).join(" + "),
       asset.resolution?.label || "Unknown Resolution",
       asset.hdr && asset.hdr !== "sdr" ? asset.hdr.toUpperCase() : null,
     ]
@@ -123,9 +123,12 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
     setEditDialogOpen(true)
   }
 
-  const formatResolution = (resolution?: { width: number; height: number; label?: string }) => {
+  const formatResolution = (resolution?: { width: number | null; height: number | null; label: string } | null) => {
     if (!resolution) return "Unknown"
-    return resolution.label || `${resolution.width}×${resolution.height}`
+    return (
+      resolution.label ||
+      (resolution.width && resolution.height ? `${resolution.width}×${resolution.height}` : "Unknown")
+    )
   }
 
   const getProtocolBadgeColor = (protocol: string) => {
@@ -149,6 +152,32 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
       sdr: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300",
     }
     return colors[hdr as keyof typeof colors] || colors.sdr
+  }
+
+  const isVideoPlayable = (asset: Asset) => {
+    // Exclude obvious web pages
+    const isWebPage = asset.url.match(/\.(html?|php|asp|jsp|cgi)(\?|$)/i)
+    if (isWebPage) return false
+
+    // Exclude URLs with query parameters that suggest web pages
+    const hasWebPageParams = asset.url.match(/[?&](page|view|id|action|module)=/i)
+    if (hasWebPageParams) return false
+
+    // Check for direct video file extensions
+    const hasDirectVideoFile = asset.url.match(/\.(mp4|webm|mov|avi|mkv|m4v|ts)$/i)
+
+    // Check for streaming protocol files
+    const hasStreamingFile = asset.url.match(/\.(m3u8|mpd)$/i)
+
+    // Check for explicit streaming protocols in asset data
+    const hasValidStreamingProtocol = asset.protocol?.some(
+      (p) => ["hls", "dash", "cmaf"].includes(p) && (hasStreamingFile || asset.url.includes("manifest")),
+    )
+
+    // Check for file protocol with valid video extension
+    const hasFileProtocol = asset.protocol?.includes("file") && hasDirectVideoFile
+
+    return Boolean(hasDirectVideoFile || hasStreamingFile || hasValidStreamingProtocol || hasFileProtocol)
   }
 
   return (
@@ -186,18 +215,11 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
               <ScrollArea className="h-[calc(100vh-200px)] mt-4">
                 <TabsContent value="overview" className="space-y-4">
                   {/* Video Preview */}
-                  {(asset.protocols?.includes("hls") ||
-                    asset.protocols?.includes("dash") ||
-                    asset.protocols?.includes("file") ||
-                    asset.url.match(/\.(mp4|webm|ogg|mov|avi|mkv|m3u8|mpd)$/i)) && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">Video Preview</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <VideoPreview asset={asset} className="border-0 shadow-none" />
-                      </CardContent>
-                    </Card>
+                  {isVideoPlayable(asset) && (
+                    <div>
+                      <h3 className="text-base font-semibold mb-3">Video Preview</h3>
+                      <VideoPreview asset={asset} className="" />
+                    </div>
                   )}
 
                   {/* Quick Actions */}
@@ -252,7 +274,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                           Report Issue
                         </Button>
                       </div>
-                      {(asset.protocols?.includes("hls") || asset.protocols?.includes("dash")) && (
+                      {(asset.protocol?.includes("hls") || asset.protocol?.includes("dash")) && (
                         <Button
                           variant="outline"
                           onClick={handleCopyManifest}
@@ -272,7 +294,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap gap-2">
-                        {asset.protocols?.map((protocol) => (
+                        {asset.protocol?.map((protocol) => (
                           <Badge key={protocol} className={getProtocolBadgeColor(protocol)}>
                             {protocol.toUpperCase()}
                           </Badge>
@@ -291,9 +313,9 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                         <div>
                           <div className="text-sm font-medium text-muted-foreground">Codec</div>
                           <div className="mt-1">
-                            {asset.codecs?.length ? (
+                            {asset.codec?.length ? (
                               <div className="flex flex-wrap gap-1">
-                                {asset.codecs.map((codec) => (
+                                {asset.codec.map((codec) => (
                                   <Badge key={codec} variant="secondary">
                                     {codec === "avc"
                                       ? "H.264/AVC"
@@ -317,8 +339,8 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                         <div>
                           <div className="text-sm font-medium text-muted-foreground">HDR Support</div>
                           <div className="mt-1">
-                            <Badge className={getHdrBadgeColor(asset.hdr || "sdr")}>
-                              {asset.hdr === "dovi" ? "Dolby Vision" : (asset.hdr || "sdr").toUpperCase()}
+                            <Badge className={getHdrBadgeColor(asset.hdr)}>
+                              {asset.hdr === "dovi" ? "Dolby Vision" : asset.hdr.toUpperCase()}
                             </Badge>
                           </div>
                         </div>
@@ -351,16 +373,14 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                   )}
 
                   {/* Notes */}
-                  {asset.notes && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">Notes</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">{asset.notes}</p>
-                      </CardContent>
-                    </Card>
-                  )}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Notes</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">{asset.notes}</p>
+                    </CardContent>
+                  </Card>
                 </TabsContent>
 
                 <TabsContent value="technical" className="space-y-4">
@@ -399,16 +419,18 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                         <div className="grid grid-cols-3 gap-4">
                           <div>
                             <div className="text-sm font-medium text-muted-foreground">Width</div>
-                            <div className="mt-1 text-sm">{asset.resolution.width}px</div>
+                            <div className="mt-1 text-sm">{asset.resolution.width || "Unknown"}px</div>
                           </div>
                           <div>
                             <div className="text-sm font-medium text-muted-foreground">Height</div>
-                            <div className="mt-1 text-sm">{asset.resolution.height}px</div>
+                            <div className="mt-1 text-sm">{asset.resolution.height || "Unknown"}px</div>
                           </div>
                           <div>
                             <div className="text-sm font-medium text-muted-foreground">Aspect Ratio</div>
                             <div className="mt-1 text-sm">
-                              {(asset.resolution.width / asset.resolution.height).toFixed(2)}:1
+                              {asset.resolution.width && asset.resolution.height
+                                ? (asset.resolution.width / asset.resolution.height).toFixed(2) + ":1"
+                                : "Unknown"}
                             </div>
                           </div>
                         </div>
@@ -417,7 +439,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                   )}
 
                   {/* Manifest Example */}
-                  {(asset.protocols?.includes("hls") || asset.protocols?.includes("dash")) && (
+                  {(asset.protocol?.includes("hls") || asset.protocol?.includes("dash")) && (
                     <Card>
                       <CardHeader>
                         <CardTitle className="text-base">Manifest Example</CardTitle>
@@ -458,7 +480,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
 }
 
 function generateManifestExample(asset: Asset): string | null {
-  if (asset.protocols?.includes("hls")) {
+  if (asset.protocol?.includes("hls")) {
     return `// HLS Manifest Example
 const video = document.createElement('video');
 video.src = '${asset.url}';
@@ -475,7 +497,7 @@ if (Hls.isSupported()) {
 }`
   }
 
-  if (asset.protocols?.includes("dash")) {
+  if (asset.protocol?.includes("dash")) {
     return `// DASH Manifest Example
 import dashjs from 'dashjs';
 

@@ -4,31 +4,40 @@ export type Protocol = "hls" | "dash" | "smooth" | "cmaf" | "file" | "other"
 export type Codec = "avc" | "hevc" | "av1" | "vp9" | "mpeg2" | "vvc" | "other"
 export type Hdr = "hdr10" | "hlg" | "dovi" | "hdr" | "sdr"
 export type Container = "mp4" | "ts" | "mkv" | "webm" | "mov" | "yuv" | "other"
+export type Scheme = "https" | "http" | "ftp" | "rtmp" | "rtsp" | "other"
 
 export interface Asset {
   id: string
   url: string
   host: string
-  scheme: "https" | "http" | "ftp" | "rtmp" | "rtsp" | "other"
-  category: string
-  protocols: Protocol[]
-  container?: Container
-  codecs?: Codec[]
-  resolution?: { width: number; height: number; label?: string }
-  hdr?: Hdr
-  notes?: string
+  scheme: Scheme
+  category: string // Numeric category ID as string
+  protocol: Protocol[] // Changed from protocols to protocol (array)
+  container: Container | null // Allow null values
+  codec: Codec[] // Changed from codecs to codec (array)
+  resolution: {
+    width: number | null
+    height: number | null
+    label: string
+  } | null // Allow null resolution
+  hdr: Hdr // Required field (not optional)
+  notes: string // Required field (not optional)
   features: string[]
   qualityScore?: QualityScore
 }
 
 export interface FacetCounts {
-  protocols: Record<Protocol, number>
-  codecs: Record<Codec, number>
-  resolutions: Record<string, number>
-  hdr: Record<Hdr, number>
-  containers: Record<Container, number>
-  hosts: Record<string, number>
-  schemes: Record<string, number>
+  protocol: Record<string, number> // Changed from protocols to protocol
+  codec: Record<string, number> // Changed from codecs to codec
+  container: Record<string, number> // Changed from containers to container
+  hdr: Record<string, number>
+  resolution: Record<string, number> // Changed from resolutions to resolution
+  host: Record<string, number> // Changed from hosts to host
+  scheme: Record<string, number> // Changed from schemes to scheme
+}
+
+export interface CategoryMap {
+  [categoryId: string]: string
 }
 
 export interface Metadata {
@@ -38,22 +47,20 @@ export interface Metadata {
   sourceUrl?: string
 }
 
-// Filter state interface
 export interface FilterState {
   search: string
-  protocols: Protocol[]
-  codecs: Codec[]
-  resolutions: string[]
+  protocol: Protocol[] // Changed from protocols
+  codec: Codec[] // Changed from codecs
+  resolution: string[] // Changed from resolutions
   hdr: Hdr[]
-  containers: Container[]
-  hosts: string[]
-  schemes: string[]
+  container: Container[] // Changed from containers
+  host: string[] // Changed from hosts
+  scheme: Scheme[] // Changed from schemes
 }
 
-// UI state interface
 export interface UIState {
   viewMode: "table" | "cards"
-  sortBy: "category" | "host" | "protocols" | "codecs" | "resolution"
+  sortBy: "category" | "host" | "protocol" | "codec" | "resolution" | "hdr"
   sortOrder: "asc" | "desc"
   selectedAsset?: Asset
 }
@@ -70,4 +77,11 @@ export interface QualityScore {
   }
   grade: "A+" | "A" | "B+" | "B" | "C+" | "C" | "D" | "F"
   recommendations: string[]
+}
+
+export interface ProcessedAssetData {
+  assets: Asset[]
+  facets: FacetCounts
+  categories: CategoryMap
+  metadata: Metadata
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import type * as React from "react"
-import { FileVideo, Gauge, Home, Settings, Sparkles, Plus } from "lucide-react"
+import { FileVideo, Gauge, Home, Settings, Sparkles, Plus, Monitor, Cpu, HardDrive, Globe, Shield } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { ContributeAssetDialog } from "./contribute-asset-dialog"
@@ -38,7 +38,6 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   onFilterChange?: (filters: Record<string, string[]>) => void
 }
 
-// Navigation data with filter configurations
 const navigationData = {
   main: [
     {
@@ -51,67 +50,158 @@ const navigationData = {
   protocols: [
     {
       title: "HLS",
-      icon: HLSIcon, // Use custom HLS icon
-      filter: { protocols: ["hls"] },
+      icon: HLSIcon,
+      filter: { protocol: ["hls"] },
     },
     {
       title: "DASH",
-      icon: DASHIcon, // Use custom DASH icon
-      filter: { protocols: ["dash"] },
+      icon: DASHIcon,
+      filter: { protocol: ["dash"] },
     },
     {
       title: "CMAF",
-      icon: CMAFIcon, // Use custom CMAF icon
-      filter: { protocols: ["cmaf"] },
+      icon: CMAFIcon,
+      filter: { protocol: ["cmaf"] },
     },
     {
       title: "Smooth Streaming",
       icon: Gauge,
-      filter: { protocols: ["smooth"] },
+      filter: { protocol: ["smooth"] },
+    },
+    {
+      title: "Direct Files",
+      icon: FileVideo,
+      filter: { protocol: ["file"] },
     },
   ],
-  videoSpecs: [
+  resolutions: [
     {
-      title: "4K Assets",
-      icon: Resolution4KIcon, // Use custom 4K icon
-      filter: { resolutions: ["4k", "2160p"] },
+      title: "8K (4320p)",
+      icon: Resolution8KIcon,
+      filter: { resolution: ["8k", "4320p"] },
     },
     {
-      title: "8K Assets",
-      icon: Resolution8KIcon, // Use custom 8K icon
-      filter: { resolutions: ["8k", "4320p"] },
+      title: "4K (2160p)",
+      icon: Resolution4KIcon,
+      filter: { resolution: ["4k", "2160p"] },
     },
     {
-      title: "H.264/AVC",
-      icon: FileVideo,
-      filter: { codecs: ["avc", "h264"] },
+      title: "Full HD (1080p)",
+      icon: Monitor,
+      filter: { resolution: ["1080p", "fullhd"] },
+    },
+    {
+      title: "HD (720p)",
+      icon: Monitor,
+      filter: { resolution: ["720p", "hd"] },
+    },
+    {
+      title: "SD (480p)",
+      icon: Monitor,
+      filter: { resolution: ["480p", "sd"] },
+    },
+  ],
+  codecs: [
+    {
+      title: "AV1",
+      icon: AV1Icon,
+      filter: { codec: ["av1"] },
     },
     {
       title: "HEVC/H.265",
-      icon: HEVCIcon, // Use custom HEVC icon
-      filter: { codecs: ["hevc", "h265"] },
+      icon: HEVCIcon,
+      filter: { codec: ["hevc", "h265"] },
     },
     {
-      title: "AV1",
-      icon: AV1Icon, // Use custom AV1 icon
-      filter: { codecs: ["av1"] },
+      title: "H.264/AVC",
+      icon: Cpu,
+      filter: { codec: ["avc", "h264"] },
+    },
+    {
+      title: "VP9",
+      icon: Cpu,
+      filter: { codec: ["vp9"] },
+    },
+    {
+      title: "MPEG-2",
+      icon: Cpu,
+      filter: { codec: ["mpeg2"] },
+    },
+    {
+      title: "VVC/H.266",
+      icon: Cpu,
+      filter: { codec: ["vvc", "h266"] },
     },
   ],
-  advancedFeatures: [
+  containers: [
+    {
+      title: "MP4",
+      icon: HardDrive,
+      filter: { container: ["mp4"] },
+    },
+    {
+      title: "WebM",
+      icon: HardDrive,
+      filter: { container: ["webm"] },
+    },
+    {
+      title: "MKV",
+      icon: HardDrive,
+      filter: { container: ["mkv"] },
+    },
+    {
+      title: "MOV",
+      icon: HardDrive,
+      filter: { container: ["mov"] },
+    },
+  ],
+  hdrFormats: [
+    {
+      title: "SDR",
+      icon: Monitor,
+      filter: { hdr: ["sdr"] },
+    },
     {
       title: "HDR10",
-      icon: HDR10Icon, // Use custom HDR10 icon
+      icon: HDR10Icon,
       filter: { hdr: ["hdr10"] },
+    },
+    {
+      title: "HDR (Generic)",
+      icon: Sparkles,
+      filter: { hdr: ["hdr"] },
+    },
+    {
+      title: "Dolby Vision",
+      icon: DolbyVisionIcon,
+      filter: { hdr: ["dovi", "dolby-vision"] },
     },
     {
       title: "HLG",
       icon: Sparkles,
       filter: { hdr: ["hlg"] },
     },
+  ],
+  schemes: [
     {
-      title: "Dolby Vision",
-      icon: DolbyVisionIcon, // Use custom Dolby Vision icon
-      filter: { hdr: ["dolby-vision", "dovi"] },
+      title: "HTTPS",
+      icon: Shield,
+      filter: { scheme: ["https"] },
+    },
+    {
+      title: "HTTP",
+      icon: Globe,
+      filter: { scheme: ["http"] },
+    },
+    {
+      title: "RTMP",
+      icon: Globe,
+      filter: { scheme: ["rtmp"] },
+    },
+    {
+      title: "RTSP",
+      icon: Globe,
+      filter: { scheme: ["rtsp"] },
     },
   ],
   resources: [
@@ -196,12 +286,11 @@ export function AppSidebar({ onFilterChange, ...props }: AppSidebarProps) {
             </SidebarGroupContent>
           </SidebarGroup>
 
-          {/* Video Specifications */}
           <SidebarGroup>
-            <SidebarGroupLabel>Video Specs</SidebarGroupLabel>
+            <SidebarGroupLabel>Resolution</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {navigationData.videoSpecs.map((item) => (
+                {navigationData.resolutions.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton onClick={() => handleFilterClick(item.filter)}>
                       <item.icon />
@@ -213,12 +302,59 @@ export function AppSidebar({ onFilterChange, ...props }: AppSidebarProps) {
             </SidebarGroupContent>
           </SidebarGroup>
 
-          {/* Advanced Features */}
           <SidebarGroup>
-            <SidebarGroupLabel>Advanced Features</SidebarGroupLabel>
+            <SidebarGroupLabel>Video Codecs</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {navigationData.advancedFeatures.map((item) => (
+                {navigationData.codecs.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton onClick={() => handleFilterClick(item.filter)}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarGroup>
+            <SidebarGroupLabel>Container Formats</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {navigationData.containers.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton onClick={() => handleFilterClick(item.filter)}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarGroup>
+            <SidebarGroupLabel>HDR Formats</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {navigationData.hdrFormats.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton onClick={() => handleFilterClick(item.filter)}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarGroup>
+            <SidebarGroupLabel>URL Schemes</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {navigationData.schemes.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton onClick={() => handleFilterClick(item.filter)}>
                       <item.icon />

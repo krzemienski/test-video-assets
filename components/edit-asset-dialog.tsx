@@ -111,7 +111,7 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
               <div className="text-sm font-medium">{asset.category}</div>
               <div className="text-xs text-muted-foreground font-mono break-all">{asset.url}</div>
               <div className="text-xs text-muted-foreground">
-                {asset.protocols?.join(", ")} • {asset.codecs?.join(", ")} •{" "}
+                {asset.protocol?.join(", ")} • {asset.codec?.join(", ")} •{" "}
                 {asset.resolution?.label || "Unknown resolution"}
               </div>
             </div>

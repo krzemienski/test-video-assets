@@ -91,14 +91,14 @@ export function MobileAssetCard({ asset, onSelect, onPreview }: MobileAssetCardP
 
           {/* Protocol badges */}
           <div className="flex flex-wrap gap-1">
-            {asset.protocols.slice(0, 3).map((protocol) => (
+            {asset.protocol?.slice(0, 3).map((protocol) => (
               <Badge key={protocol} variant="secondary" className="text-xs">
                 {protocol.toUpperCase()}
               </Badge>
             ))}
-            {asset.protocols.length > 3 && (
+            {asset.protocol && asset.protocol.length > 3 && (
               <Badge variant="secondary" className="text-xs">
-                +{asset.protocols.length - 3}
+                +{asset.protocol.length - 3}
               </Badge>
             )}
           </div>
@@ -108,7 +108,7 @@ export function MobileAssetCard({ asset, onSelect, onPreview }: MobileAssetCardP
             <div>
               <span className="text-muted-foreground">Codec:</span>
               <div className="font-medium truncate">
-                {asset.codecs?.map((c) => c.toUpperCase()).join(", ") || "Unknown"}
+                {asset.codec?.map((c) => c.toUpperCase()).join(", ") || "Unknown"}
               </div>
             </div>
             <div>

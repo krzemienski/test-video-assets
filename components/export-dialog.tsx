@@ -44,8 +44,8 @@ const availableFields = [
   { key: "url", label: "URL" },
   { key: "host", label: "Host" },
   { key: "scheme", label: "Scheme" },
-  { key: "protocols", label: "Protocols" },
-  { key: "codecs", label: "Codecs" },
+  { key: "protocol", label: "Protocol" }, // Updated from protocols to protocol
+  { key: "codec", label: "Codec" }, // Updated from codecs to codec
   { key: "container", label: "Container" },
   { key: "resolution", label: "Resolution" },
   { key: "hdr", label: "HDR" },

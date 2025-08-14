@@ -54,12 +54,12 @@ export function RecommendationsPanel({ recommendations, onAssetSelect }: Recomme
                   </div>
 
                   <div className="flex items-center gap-2 mb-2">
-                    {asset.protocols.slice(0, 2).map((protocol) => (
+                    {asset.protocol?.slice(0, 2).map((protocol) => (
                       <Badge key={protocol} variant="secondary" className="text-xs">
                         {protocol.toUpperCase()}
                       </Badge>
                     ))}
-                    {asset.codecs?.slice(0, 1).map((codec) => (
+                    {asset.codec?.slice(0, 1).map((codec) => (
                       <Badge key={codec} variant="outline" className="text-xs">
                         {codec.toUpperCase()}
                       </Badge>

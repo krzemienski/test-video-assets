@@ -31,13 +31,13 @@ async function processVideoAssets() {
 
   const assets = []
   const facetCounts = {
-    protocols: {},
-    codecs: {},
-    resolutions: {},
+    protocol: {},
+    codec: {},
+    resolution: {},
     hdr: {},
-    containers: {},
-    hosts: {},
-    schemes: {},
+    container: {},
+    host: {},
+    scheme: {},
   }
 
   for (let i = 1; i < lines.length; i++) {
@@ -71,10 +71,10 @@ async function processVideoAssets() {
     const id = `${urlHash.substring(0, 8)}-${timestamp}`
 
     // Extract protocols
-    const protocols = extractProtocols(formatProtocol, notes)
+    const protocol = extractProtocols(formatProtocol, notes)
 
     // Extract codecs
-    const codecs = extractCodecs(formatProtocol, notes)
+    const codec = extractCodecs(formatProtocol, notes)
 
     // Extract resolution
     const resolution = extractResolution(formatProtocol, notes)
@@ -94,8 +94,8 @@ async function processVideoAssets() {
       host,
       scheme,
       category: category?.trim() || "Uncategorized",
-      protocols,
-      codecs,
+      protocol,
+      codec,
       resolution,
       hdr,
       container,
@@ -106,14 +106,14 @@ async function processVideoAssets() {
     assets.push(asset)
 
     // Update facet counts
-    protocols.forEach((p) => (facetCounts.protocols[p] = (facetCounts.protocols[p] || 0) + 1))
-    codecs.forEach((c) => (facetCounts.codecs[c] = (facetCounts.codecs[c] || 0) + 1))
+    protocol.forEach((p) => (facetCounts.protocol[p] = (facetCounts.protocol[p] || 0) + 1))
+    codec.forEach((c) => (facetCounts.codec[c] = (facetCounts.codec[c] || 0) + 1))
     if (resolution?.label)
-      facetCounts.resolutions[resolution.label] = (facetCounts.resolutions[resolution.label] || 0) + 1
+      facetCounts.resolution[resolution.label] = (facetCounts.resolution[resolution.label] || 0) + 1
     if (hdr) facetCounts.hdr[hdr] = (facetCounts.hdr[hdr] || 0) + 1
-    if (container) facetCounts.containers[container] = (facetCounts.containers[container] || 0) + 1
-    facetCounts.hosts[host] = (facetCounts.hosts[host] || 0) + 1
-    facetCounts.schemes[scheme] = (facetCounts.schemes[scheme] || 0) + 1
+    if (container) facetCounts.container[container] = (facetCounts.container[container] || 0) + 1
+    facetCounts.host[host] = (facetCounts.host[host] || 0) + 1
+    facetCounts.scheme[scheme] = (facetCounts.scheme[scheme] || 0) + 1
   }
 
   // Sort facet counts

@@ -126,15 +126,18 @@
   }
 }
 
-/* Updated Video.js styling to match new theme colors */
+/* Enhanced Video.js styling with comprehensive theme integration */
 @import url("https://vjs.zencdn.net/8.12.0/video-js.css");
 
+/* Video.js theme integration with violet color scheme */
 .video-js {
-  font-family: inherit;
+  font-family: var(--font-sans);
+  background-color: #000;
 }
 
 .video-js .vjs-control-bar {
-  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.9) 100%);
+  backdrop-filter: blur(4px);
 }
 
 .video-js .vjs-play-progress,
@@ -150,13 +153,148 @@
 .video-js .vjs-big-play-button {
   background-color: rgba(154, 52, 181, 0.8);
   border-color: oklch(0.606 0.25 292.717);
+  border-radius: var(--radius);
+  transition: all 0.2s ease;
 }
 
 .video-js .vjs-big-play-button:hover {
   background-color: rgba(154, 52, 181, 0.9);
+  transform: scale(1.05);
 }
 
-/* Added custom animations for mobile interactions */
+.video-js .vjs-big-play-button:focus {
+  outline: 2px solid oklch(0.606 0.25 292.717);
+  outline-offset: 2px;
+}
+
+/* Quality selector styling */
+.video-js .vjs-quality-selector .vjs-menu-content {
+  background-color: oklch(0.21 0.006 285.885);
+  border: 1px solid oklch(0.92 0.004 286.32);
+  border-radius: var(--radius);
+}
+
+.video-js .vjs-quality-selector .vjs-menu-item {
+  color: oklch(0.985 0 0);
+}
+
+.video-js .vjs-quality-selector .vjs-menu-item:hover {
+  background-color: oklch(0.274 0.006 286.033);
+}
+
+.video-js .vjs-quality-selector .vjs-menu-item.vjs-selected {
+  background-color: oklch(0.606 0.25 292.717);
+  color: oklch(0.969 0.016 293.756);
+}
+
+/* Playback rate menu styling */
+.video-js .vjs-playback-rate .vjs-menu-content {
+  background-color: oklch(0.21 0.006 285.885);
+  border: 1px solid oklch(0.92 0.004 286.32);
+  border-radius: var(--radius);
+}
+
+.video-js .vjs-playback-rate .vjs-menu-item {
+  color: oklch(0.985 0 0);
+}
+
+.video-js .vjs-playback-rate .vjs-menu-item:hover {
+  background-color: oklch(0.274 0.006 286.033);
+}
+
+.video-js .vjs-playback-rate .vjs-menu-item.vjs-selected {
+  background-color: oklch(0.606 0.25 292.717);
+  color: oklch(0.969 0.016 293.756);
+}
+
+/* Loading spinner styling */
+.video-js .vjs-loading-spinner {
+  border-color: oklch(0.606 0.25 292.717) transparent transparent transparent;
+}
+
+/* Error display styling */
+.video-js .vjs-error-display {
+  background-color: rgba(0, 0, 0, 0.8);
+  color: oklch(0.985 0 0);
+}
+
+.video-js .vjs-error-display .vjs-modal-dialog-content {
+  font-family: var(--font-sans);
+}
+
+/* Fullscreen button styling */
+.video-js .vjs-fullscreen-control:hover {
+  color: oklch(0.606 0.25 292.717);
+}
+
+/* Volume control styling */
+.video-js .vjs-volume-control:hover .vjs-volume-bar {
+  background-color: rgba(154, 52, 181, 0.2);
+}
+
+/* Progress bar styling */
+.video-js .vjs-progress-control .vjs-progress-holder {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.video-js .vjs-progress-control .vjs-load-progress {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Time display styling */
+.video-js .vjs-current-time,
+.video-js .vjs-duration,
+.video-js .vjs-time-divider {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+/* Dark mode adjustments */
+.dark .video-js .vjs-control-bar {
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.95) 100%);
+}
+
+.dark .video-js .vjs-big-play-button {
+  background-color: rgba(137, 43, 226, 0.8);
+}
+
+.dark .video-js .vjs-big-play-button:hover {
+  background-color: rgba(137, 43, 226, 0.9);
+}
+
+/* Mobile-specific Video.js adjustments */
+@media (max-width: 768px) {
+  .video-js .vjs-big-play-button {
+    font-size: 2.5rem;
+    width: 2em;
+    height: 2em;
+    line-height: 2em;
+  }
+
+  .video-js .vjs-control-bar {
+    font-size: 14px;
+  }
+
+  .video-js .vjs-current-time,
+  .video-js .vjs-duration {
+    font-size: 12px;
+  }
+}
+
+/* Touch-friendly improvements for video controls */
+@media (hover: none) and (pointer: coarse) {
+  .video-js .vjs-control-bar .vjs-control {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .video-js .vjs-big-play-button {
+    min-height: 88px;
+    min-width: 88px;
+  }
+}
+
+/* Custom animations for mobile interactions */
 @keyframes shake {
   0%,
   100% {

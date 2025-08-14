@@ -30,8 +30,8 @@ interface AssetContribution {
   url: string
   title: string
   category: string
-  protocols: string[]
-  codecs: string[]
+  protocol: string[] // Updated from protocols to protocol
+  codec: string[] // Updated from codecs to codec
   resolution: string
   hdr: string
   container: string
@@ -95,8 +95,8 @@ export function ContributeAssetDialog({ open, onOpenChange }: ContributeAssetDia
     url: "",
     title: "",
     category: "",
-    protocols: [],
-    codecs: [],
+    protocol: [], // Updated from protocols to protocol
+    codec: [], // Updated from codecs to codec
     resolution: "",
     hdr: "sdr",
     container: "",
@@ -140,8 +140,8 @@ export function ContributeAssetDialog({ open, onOpenChange }: ContributeAssetDia
 - **Category:** ${formData.category || "Not specified"}
 
 **Technical Specifications:**
-- **Protocols:** ${formData.protocols.length ? formData.protocols.join(", ") : "Not specified"}
-- **Codecs:** ${formData.codecs.length ? formData.codecs.join(", ") : "Not specified"}
+- **Protocols:** ${formData.protocol.length ? formData.protocol.join(", ") : "Not specified"}
+- **Codecs:** ${formData.codec.length ? formData.codec.join(", ") : "Not specified"}
 - **Resolution:** ${formData.resolution || "Not specified"}
 - **HDR:** ${formData.hdr}
 - **Container:** ${formData.container || "Not specified"}
@@ -186,8 +186,8 @@ ${formData.notes || "No additional notes provided"}
         url: "",
         title: "",
         category: "",
-        protocols: [],
-        codecs: [],
+        protocol: [], // Updated from protocols to protocol
+        codec: [], // Updated from codecs to codec
         resolution: "",
         hdr: "sdr",
         container: "",
@@ -211,14 +211,14 @@ ${formData.notes || "No additional notes provided"}
   const handleProtocolChange = (protocol: string, checked: boolean) => {
     setFormData((prev) => ({
       ...prev,
-      protocols: checked ? [...prev.protocols, protocol] : prev.protocols.filter((p) => p !== protocol),
+      protocol: checked ? [...prev.protocol, protocol] : prev.protocol.filter((p) => p !== protocol), // Updated from protocols to protocol
     }))
   }
 
   const handleCodecChange = (codec: string, checked: boolean) => {
     setFormData((prev) => ({
       ...prev,
-      codecs: checked ? [...prev.codecs, codec] : prev.codecs.filter((c) => c !== codec),
+      codec: checked ? [...prev.codec, codec] : prev.codec.filter((c) => c !== codec), // Updated from codecs to codec
     }))
   }
 
@@ -310,7 +310,7 @@ ${formData.notes || "No additional notes provided"}
                     <div key={protocol.value} className="flex items-center space-x-2">
                       <Checkbox
                         id={`protocol-${protocol.value}`}
-                        checked={formData.protocols.includes(protocol.value)}
+                        checked={formData.protocol.includes(protocol.value)} // Updated from protocols to protocol
                         onCheckedChange={(checked) => handleProtocolChange(protocol.value, checked as boolean)}
                       />
                       <Label htmlFor={`protocol-${protocol.value}`} className="text-sm">
@@ -328,7 +328,7 @@ ${formData.notes || "No additional notes provided"}
                     <div key={codec.value} className="flex items-center space-x-2">
                       <Checkbox
                         id={`codec-${codec.value}`}
-                        checked={formData.codecs.includes(codec.value)}
+                        checked={formData.codec.includes(codec.value)} // Updated from codecs to codec
                         onCheckedChange={(checked) => handleCodecChange(codec.value, checked as boolean)}
                       />
                       <Label htmlFor={`codec-${codec.value}`} className="text-sm">

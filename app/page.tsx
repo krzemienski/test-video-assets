@@ -42,13 +42,13 @@ export default function HomePage() {
 
   const [filters, setFilters] = React.useState<FilterState>({
     search: "",
-    protocols: [],
-    codecs: [],
-    resolutions: [],
+    protocol: [],
+    codec: [],
+    resolution: [],
     hdr: [],
-    containers: [],
-    hosts: [],
-    schemes: [],
+    container: [],
+    host: [],
+    scheme: [],
   })
 
   const { filteredAssets, resultCount, activeFilterCount, activeFilterLabels } = useAssetFilters({
@@ -103,21 +103,29 @@ export default function HomePage() {
   const handleClearFilters = () => {
     setFilters({
       search: "",
-      protocols: [],
-      codecs: [],
-      resolutions: [],
+      protocol: [],
+      codec: [],
+      resolution: [],
       hdr: [],
-      containers: [],
-      hosts: [],
-      schemes: [],
+      container: [],
+      host: [],
+      scheme: [],
     })
   }
 
   const handleSidebarFilterChange = (sidebarFilters: Record<string, string[]>) => {
-    setFilters((prev) => ({
-      ...prev,
-      ...sidebarFilters,
-    }))
+    if (!sidebarFilters) return
+
+    console.log("Sidebar filter change:", sidebarFilters)
+
+    setFilters((prev) => {
+      const newFilters = {
+        ...prev,
+        ...sidebarFilters,
+      }
+      console.log("Updated filters:", newFilters)
+      return newFilters
+    })
   }
 
   const handleAssetSelect = (asset: Asset) => {
@@ -216,7 +224,7 @@ export default function HomePage() {
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen" {...globalGestureHandlers}>
+      <div className="flex h-screen" {...(globalGestureHandlers || {})}>
         {/* Desktop Sidebar */}
         <div className="hidden md:block">
           <AppSidebar onFilterChange={handleSidebarFilterChange} />
@@ -323,7 +331,7 @@ export default function HomePage() {
                       >
                         <div className="text-center p-4 rounded-lg bg-muted/50 cursor-help">
                           <div className="text-2xl font-bold text-primary">
-                            {facetCounts ? Object.keys(facetCounts.protocols).length : "4"}
+                            {facetCounts?.protocol ? Object.keys(facetCounts.protocol).length : "4"}
                           </div>
                           <div className="text-sm text-muted-foreground">Streaming Protocols</div>
                         </div>
@@ -334,7 +342,7 @@ export default function HomePage() {
                       >
                         <div className="text-center p-4 rounded-lg bg-muted/50 cursor-help">
                           <div className="text-2xl font-bold text-primary">
-                            {facetCounts ? Object.keys(facetCounts.codecs).length : "6"}
+                            {facetCounts?.codec ? Object.keys(facetCounts.codec).length : "6"}
                           </div>
                           <div className="text-sm text-muted-foreground">Video Codecs</div>
                         </div>
@@ -345,7 +353,7 @@ export default function HomePage() {
                       >
                         <div className="text-center p-4 rounded-lg bg-muted/50 cursor-help">
                           <div className="text-2xl font-bold text-primary">
-                            {facetCounts ? Object.keys(facetCounts.resolutions).length : "8"}
+                            {facetCounts?.resolution ? Object.keys(facetCounts.resolution).length : "8"}
                           </div>
                           <div className="text-sm text-muted-foreground">Resolution Types</div>
                         </div>

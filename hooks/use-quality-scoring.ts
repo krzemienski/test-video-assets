@@ -63,10 +63,10 @@ const RESOLUTION_SCORES: Record<string, number> = {
 export function useQualityScoring() {
   const calculateQualityScore = React.useCallback((asset: Asset): QualityScore => {
     // Protocol score (best protocol gets full points)
-    const protocolScore = Math.max(...asset.protocols.map((p) => PROTOCOL_SCORES[p] || 0))
+    const protocolScore = Math.max(...(asset.protocol?.map((p) => PROTOCOL_SCORES[p] || 0) || [0]))
 
     // Codec score (best codec gets full points)
-    const codecScore = asset.codecs?.length ? Math.max(...asset.codecs.map((c) => CODEC_SCORES[c] || 0)) : 0
+    const codecScore = asset.codec?.length ? Math.max(...asset.codec.map((c) => CODEC_SCORES[c] || 0)) : 0
 
     // Resolution score
     let resolutionScore = 0
@@ -88,7 +88,7 @@ export function useQualityScoring() {
     const containerScore = asset.container ? CONTAINER_SCORES[asset.container] || 0 : 0
 
     // Features score (more features = better)
-    const featuresScore = Math.min(asset.features.length * 2, SCORING_WEIGHTS.features)
+    const featuresScore = Math.min((asset.features?.length || 0) * 2, SCORING_WEIGHTS.features)
 
     // Calculate overall score
     const overall = protocolScore + codecScore + resolutionScore + hdrScore + containerScore + featuresScore
@@ -123,7 +123,7 @@ export function useQualityScoring() {
       recommendations.push("HDR content offers enhanced visual quality")
     }
 
-    if (asset.features.length < 3) {
+    if ((asset.features?.length || 0) < 3) {
       recommendations.push("Additional features like adaptive bitrate improve user experience")
     }
 

@@ -4,7 +4,7 @@ import * as React from "react"
 import { AlertCircle, BarChart3, Settings, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -45,54 +45,175 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
   const [showDebug, setShowDebug] = React.useState(false)
   const [stats, setStats] = React.useState<VideoStats | null>(null)
   const [debugLogs, setDebugLogs] = React.useState<string[]>([])
+  const [urlValidated, setUrlValidated] = React.useState(false)
+  const [isPlaying, setIsPlaying] = React.useState(false)
+  const [canPlay, setCanPlay] = React.useState(false)
+
+  const validateUrl = async (url: string): Promise<boolean> => {
+    try {
+      addDebugLog(`Validating URL: ${url}`)
+
+      try {
+        new URL(url)
+      } catch {
+        addDebugLog("Invalid URL format")
+        return false
+      }
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
+
+      const response = await fetch(url, {
+        method: "HEAD",
+        signal: controller.signal,
+        mode: "no-cors",
+      })
+
+      clearTimeout(timeoutId)
+
+      addDebugLog("URL validation successful")
+      return true
+    } catch (error) {
+      if (error.name === "AbortError") {
+        addDebugLog("URL validation timeout - URL may not exist")
+      } else {
+        addDebugLog(`URL validation failed: ${error}`)
+      }
+
+      if (url.includes(".m3u8") || url.includes(".mpd")) {
+        addDebugLog("Streaming URL detected, allowing Video.js to handle validation")
+        return true
+      }
+
+      return false
+    }
+  }
+
+  const handleLoadStart = () => {
+    setIsLoading(true)
+    addDebugLog("Video loading started")
+  }
+
+  const handleLoadedMetadata = () => {
+    addDebugLog("Loaded metadata")
+  }
+
+  const handleLoadedData = () => {
+    addDebugLog("Loaded data")
+  }
+
+  const handleCanPlay = () => {
+    setIsLoading(false)
+    setError(null)
+    setCanPlay(true)
+    addDebugLog("Video can start playing")
+  }
+
+  const handleCanPlayThrough = () => {
+    addDebugLog("Video can play through")
+  }
+
+  const handleError = (e: any) => {
+    setIsLoading(false)
+    const errorCode = videoRef.current?.error?.code || 0
+    let errorMsg = "Video playback error"
+
+    switch (errorCode) {
+      case 1:
+        errorMsg = "Video loading was aborted"
+        break
+      case 2:
+        errorMsg = "Network error - video URL may not exist or be accessible"
+        break
+      case 3:
+        errorMsg = "Video format is corrupted"
+        break
+      case 4:
+        errorMsg = "Video format is not supported or URL does not exist"
+        break
+    }
+
+    setError(errorMsg)
+    addDebugLog(`Video error (${errorCode}): ${errorMsg}`)
+  }
+
+  const handlePlay = () => {
+    setIsPlaying(true)
+    addDebugLog("Video playback started")
+  }
+
+  const handlePause = () => {
+    setIsPlaying(false)
+    addDebugLog("Video playback paused")
+  }
+
+  const handlePlayButtonClick = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause()
+      } else {
+        videoRef.current.play()
+      }
+    }
+  }
+
+  const handleSeeking = () => {
+    addDebugLog("Video seeking")
+  }
+
+  const handleSeeked = () => {
+    addDebugLog("Video seeked")
+  }
+
+  const handleEnded = () => {
+    addDebugLog("Video playback ended")
+  }
+
+  const handleVolumeChange = () => {
+    addDebugLog("Volume changed")
+  }
+
+  const handleRateChange = () => {
+    addDebugLog("Playback rate changed")
+  }
+
+  const handleResize = () => {
+    addDebugLog("Video resized")
+  }
+
+  const handleFullscreenChange = () => {
+    addDebugLog("Fullscreen change")
+  }
 
   React.useEffect(() => {
     const initializePlayer = async () => {
       try {
         if (!videoRef.current) return
 
+        setIsLoading(true)
+        setError(null)
+        setUrlValidated(false)
+
+        const isValidUrl = await validateUrl(asset.url)
+        setUrlValidated(true)
+
+        if (!isValidUrl) {
+          setError("Video URL is not accessible or does not exist")
+          setIsLoading(false)
+          addDebugLog("Skipping video initialization due to invalid URL")
+          return
+        }
+
         const videoElement = videoRef.current
-
-        // Set video source directly based on asset type
         const source = getVideoSource()
-        if (source) {
-          videoElement.src = source.src
-          addDebugLog(`Loading ${source.type}: ${source.src}`)
+
+        if (!source) {
+          setError("Unsupported video format")
+          setIsLoading(false)
+          return
         }
 
-        // Add event listeners
-        videoElement.addEventListener("loadstart", () => {
-          setIsLoading(true)
-          addDebugLog("Video loading started")
-        })
-
-        videoElement.addEventListener("canplay", () => {
-          setIsLoading(false)
-          setError(null)
-          addDebugLog("Video can start playing")
-        })
-
-        videoElement.addEventListener("error", (e) => {
-          setIsLoading(false)
-          const errorMsg = videoElement.error?.message || "Unknown video error"
-          setError(errorMsg)
-          addDebugLog(`Error: ${errorMsg}`)
-        })
-
-        videoElement.addEventListener("timeupdate", updateStats)
-        videoElement.addEventListener("progress", updateStats)
-        videoElement.addEventListener("play", () => addDebugLog("Playback started"))
-        videoElement.addEventListener("pause", () => addDebugLog("Playback paused"))
-        videoElement.addEventListener("seeking", () => addDebugLog("Seeking"))
-        videoElement.addEventListener("seeked", () => addDebugLog("Seek completed"))
-
-        if (autoplay) {
-          try {
-            await videoElement.play()
-          } catch (err) {
-            addDebugLog(`Autoplay failed: ${err}`)
-          }
-        }
+        await initializeNativeVideo(videoElement, source)
 
         setIsLoading(false)
       } catch (err) {
@@ -106,37 +227,201 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
     initializePlayer()
 
     return () => {
+      if (playerRef.current) {
+        try {
+          playerRef.current.dispose()
+          playerRef.current = null
+        } catch (e) {
+          console.warn("Error disposing Video.js player:", e)
+        }
+      }
+
       if (videoRef.current) {
         const video = videoRef.current
-        video.removeEventListener("loadstart", () => {})
-        video.removeEventListener("canplay", () => {})
-        video.removeEventListener("error", () => {})
+        video.removeEventListener("loadstart", handleLoadStart)
+        video.removeEventListener("loadedmetadata", handleLoadedMetadata)
+        video.removeEventListener("loadeddata", handleLoadedData)
+        video.removeEventListener("canplay", handleCanPlay)
+        video.removeEventListener("canplaythrough", handleCanPlayThrough)
+        video.removeEventListener("error", handleError)
         video.removeEventListener("timeupdate", updateStats)
         video.removeEventListener("progress", updateStats)
+        video.removeEventListener("play", handlePlay)
+        video.removeEventListener("pause", handlePause)
+        video.removeEventListener("seeking", handleSeeking)
+        video.removeEventListener("seeked", handleSeeked)
+        video.removeEventListener("ended", handleEnded)
+        video.removeEventListener("volumechange", handleVolumeChange)
+        video.removeEventListener("ratechange", handleRateChange)
+        video.removeEventListener("resize", handleResize)
+        video.removeEventListener("fullscreenchange", handleFullscreenChange)
       }
     }
   }, [asset.url])
 
+  const initializeVideoJS = async (videoElement: HTMLVideoElement, source: { src: string; type: string }) => {
+    try {
+      const videojs = (await import("video.js")).default
+
+      addDebugLog(`Initializing Video.js for ${source.type}`)
+
+      const player = videojs(videoElement, {
+        controls: true,
+        preload: "metadata",
+        responsive: true,
+        fluid: false,
+        aspectRatio: "16:9",
+        techOrder: ["html5"],
+        html5: {
+          vhs: {
+            overrideNative: true,
+            enableLowInitialPlaylist: true,
+            smoothQualityChange: true,
+            handleManifestRedirects: true,
+          },
+        },
+      })
+
+      playerRef.current = player
+
+      player.ready(() => {
+        addDebugLog("Video.js player ready, setting source...")
+
+        player.src({
+          src: source.src,
+          type: source.type,
+        })
+
+        addDebugLog(`Source set: ${source.src} (${source.type})`)
+
+        if (autoplay) {
+          player.play().catch((err: any) => {
+            addDebugLog(`Autoplay failed: ${err}`)
+          })
+        }
+      })
+
+      player.on("error", (e: any) => {
+        const error = player.error()
+        if (error) {
+          const errorCode = error.code
+          const errorMessage = error.message || "Unknown error"
+
+          addDebugLog(`Video.js Error - Code: ${errorCode}, Message: ${errorMessage}`)
+
+          if (errorCode === 2 || errorCode === 4) {
+            setError("Video URL is not accessible or does not exist")
+            setIsLoading(false)
+            return
+          }
+
+          addDebugLog("Falling back to native video...")
+          player.dispose()
+          playerRef.current = null
+          initializeNativeVideo(videoElement, source)
+        }
+      })
+
+      player.on("loadstart", handleLoadStart)
+      player.on("canplay", handleCanPlay)
+      player.on("timeupdate", updateStats)
+      player.on("play", handlePlay)
+      player.on("pause", handlePause)
+      player.on("ended", handleEnded)
+    } catch (err) {
+      addDebugLog(`Video.js initialization failed: ${err}`)
+      await initializeNativeVideo(videoElement, source)
+    }
+  }
+
+  const initializeNativeVideo = async (videoElement: HTMLVideoElement, source: { src: string; type: string }) => {
+    if (playerRef.current) {
+      try {
+        playerRef.current.dispose()
+        playerRef.current = null
+      } catch (e) {
+        console.warn("Error disposing Video.js player:", e)
+      }
+    }
+
+    const isStreamingProtocol = source.type === "application/x-mpegURL" || source.type === "application/dash+xml"
+
+    if (isStreamingProtocol) {
+      const canPlay = videoElement.canPlayType(source.type)
+
+      if (canPlay === "" || canPlay === "no") {
+        addDebugLog(`Native browser doesn't support ${source.type}, trying Video.js...`)
+        try {
+          await initializeVideoJS(videoElement, source)
+          return
+        } catch (err) {
+          addDebugLog(`Video.js also failed: ${err}`)
+          setError(`Streaming format ${source.type} not supported`)
+          return
+        }
+      }
+    }
+
+    videoElement.src = source.src
+    addDebugLog(`Loading native video: ${source.src}`)
+
+    videoElement.addEventListener("loadstart", handleLoadStart)
+    videoElement.addEventListener("loadedmetadata", handleLoadedMetadata)
+    videoElement.addEventListener("loadeddata", handleLoadedData)
+    videoElement.addEventListener("canplay", handleCanPlay)
+    videoElement.addEventListener("canplaythrough", handleCanPlayThrough)
+    videoElement.addEventListener("error", handleError)
+    videoElement.addEventListener("timeupdate", updateStats)
+    videoElement.addEventListener("play", handlePlay)
+    videoElement.addEventListener("pause", handlePause)
+    videoElement.addEventListener("seeking", handleSeeking)
+    videoElement.addEventListener("seeked", handleSeeked)
+    videoElement.addEventListener("ended", handleEnded)
+    videoElement.addEventListener("volumechange", handleVolumeChange)
+    videoElement.addEventListener("ratechange", handleRateChange)
+    videoElement.addEventListener("resize", handleResize)
+    videoElement.addEventListener("fullscreenchange", handleFullscreenChange)
+
+    if (autoplay) {
+      try {
+        await videoElement.play()
+      } catch (err) {
+        addDebugLog(`Autoplay failed: ${err}`)
+      }
+    }
+  }
+
   const getVideoSource = () => {
-    if (asset.protocols?.includes("hls") || asset.url.includes(".m3u8")) {
+    if (asset.protocol?.includes("hls") || asset.url.includes(".m3u8")) {
       return { src: asset.url, type: "application/x-mpegURL" }
     }
-    if (asset.protocols?.includes("dash") || asset.url.includes(".mpd")) {
+    if (asset.protocol?.includes("dash") || asset.url.includes(".mpd")) {
       return { src: asset.url, type: "application/dash+xml" }
     }
 
-    // Handle direct file URLs
     const extension = asset.url.split(".").pop()?.toLowerCase()
     const mimeTypes: Record<string, string> = {
       mp4: "video/mp4",
       webm: "video/webm",
       ogg: "video/ogg",
+      ogv: "video/ogg",
       mov: "video/quicktime",
       avi: "video/x-msvideo",
       mkv: "video/x-matroska",
+      m4v: "video/mp4",
+      flv: "video/x-flv",
+      wmv: "video/x-ms-wmv",
+      "3gp": "video/3gpp",
+      ts: "video/mp2t",
     }
 
-    return { src: asset.url, type: mimeTypes[extension || ""] || "video/mp4" }
+    const mimeType = mimeTypes[extension || ""]
+    if (!mimeType) {
+      addDebugLog(`Unknown file extension: ${extension}, defaulting to video/mp4`)
+      return { src: asset.url, type: "video/mp4" }
+    }
+
+    return { src: asset.url, type: mimeType }
   }
 
   const addDebugLog = (message: string) => {
@@ -167,17 +452,60 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
       fps: 0,
     }
 
-    // Get additional stats from Video.js if available
     try {
+      if (playerRef.current) {
+        const player = playerRef.current
+        const tech = player.tech()
+
+        if (tech && tech.vhs) {
+          const vhs = tech.vhs
+          newStats.bitrate = vhs.bandwidth || 0
+
+          if (vhs.stats) {
+            newStats.bytesLoaded = vhs.stats.bytesReceived || 0
+            newStats.droppedFrames = vhs.stats.videoPlaybackQuality?.droppedVideoFrames || 0
+          }
+
+          if (vhs.playlists && vhs.playlists.master) {
+            const currentPlaylist = vhs.playlists.master.playlists.find((p: any) => p === vhs.playlists.media())
+            if (currentPlaylist) {
+              addDebugLog(
+                `Current quality: ${currentPlaylist.attributes?.RESOLUTION?.width || "unknown"}x${currentPlaylist.attributes?.RESOLUTION?.height || "unknown"} @ ${Math.round((currentPlaylist.attributes?.BANDWIDTH || 0) / 1000)}kbps`,
+              )
+            }
+          }
+        }
+
+        if (player.bufferedPercent) {
+          const bufferedPercent = player.bufferedPercent()
+          if (bufferedPercent > 0) {
+            addDebugLog(`Buffer: ${Math.round(bufferedPercent * 100)}%`)
+          }
+        }
+      }
+
       const videoElement = video as any
-      if (videoElement.webkitDecodedFrameCount) {
+      if (videoElement.webkitDecodedFrameCount !== undefined) {
         newStats.decodedFrames = videoElement.webkitDecodedFrameCount
       }
-      if (videoElement.webkitDroppedFrameCount) {
+      if (videoElement.webkitDroppedFrameCount !== undefined) {
         newStats.droppedFrames = videoElement.webkitDroppedFrameCount
       }
+      if (videoElement.webkitDisplayedFrameCount !== undefined) {
+        newStats.presentedFrames = videoElement.webkitDisplayedFrameCount
+      }
+
+      if (newStats.decodedFrames > 0 && newStats.currentTime > 0) {
+        newStats.fps = Math.round(newStats.decodedFrames / newStats.currentTime)
+      }
+
+      if (videoElement.getVideoPlaybackQuality) {
+        const quality = videoElement.getVideoPlaybackQuality()
+        newStats.droppedFrames = quality.droppedVideoFrames || newStats.droppedFrames
+        newStats.decodedFrames = quality.totalVideoFrames || newStats.decodedFrames
+      }
     } catch (e) {
-      // Ignore errors accessing webkit properties
+      addDebugLog(`Stats collection error: ${e}`)
     }
 
     setStats(newStats)
@@ -211,77 +539,124 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
   }
 
   const isPreviewable = React.useMemo(() => {
-    const hasVideoExtension = asset.url.match(/\.(mp4|webm|ogg|mov|avi|mkv|m3u8|mpd)$/i)
-    const hasStreamingProtocol = asset.protocols?.some((p) => ["hls", "dash", "file"].includes(p))
-    return Boolean(hasVideoExtension || hasStreamingProtocol)
+    const isWebPage = asset.url.match(/\.(html?|php|asp|jsp|cgi)(\?|$)/i)
+    if (isWebPage) return false
+
+    const hasWebPageParams = asset.url.match(/[?&](page|view|id|action|module)=/i)
+    if (hasWebPageParams) return false
+
+    const hasDirectVideoFile = asset.url.match(/\.(mp4|webm|mov|avi|mkv|m4v|ts)$/i)
+
+    const hasStreamingFile = asset.url.match(/\.(m3u8|mpd)$/i)
+
+    const hasValidStreamingProtocol = asset.protocol?.some(
+      (p) => ["hls", "dash", "cmaf"].includes(p) && (hasStreamingFile || asset.url.includes("manifest")),
+    )
+
+    const hasFileProtocol = asset.protocol?.includes("file") && hasDirectVideoFile
+
+    return Boolean(hasDirectVideoFile || hasStreamingFile || hasValidStreamingProtocol || hasFileProtocol)
   }, [asset])
 
   if (!isPreviewable) {
     return (
-      <Card className={className}>
-        <CardContent className="p-6">
+      <div className={`rounded-lg border bg-card ${className}`}>
+        <div className="p-6">
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Preview not available for this asset type. Supported formats: MP4, WebM, HLS (.m3u8), DASH (.mpd)
+              Preview not available for this asset type. Supported formats: MP4, WebM, MOV, AVI, MKV, HLS (.m3u8), DASH
+              (.mpd), and more.
             </AlertDescription>
           </Alert>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     )
   }
 
   return (
-    <Card className={className}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Video Preview</CardTitle>
-          <div className="flex items-center gap-2">
-            {asset.protocols?.map((protocol) => (
-              <Badge key={protocol} variant="secondary" className="text-xs">
-                {protocol.toUpperCase()}
-              </Badge>
-            ))}
-            <Button variant="outline" size="sm" onClick={() => setShowStats(!showStats)} className="h-8">
-              <BarChart3 className="h-4 w-4 mr-1" />
-              Stats
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setShowDebug(!showDebug)} className="h-8">
-              <Settings className="h-4 w-4 mr-1" />
-              Debug
-            </Button>
+    <div className={`space-y-4 ${className}`}>
+      <div className="relative rounded-lg overflow-hidden bg-black">
+        <video
+          ref={videoRef}
+          className="w-full aspect-video video-js vjs-default-skin"
+          controls
+          preload="metadata"
+          crossOrigin="anonymous"
+          style={{ maxHeight: "400px" }}
+        />
+
+        {canPlay && !isPlaying && !isLoading && (
+          <div
+            className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors cursor-pointer group"
+            onClick={handlePlayButtonClick}
+          >
+            <div className="w-20 h-20 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+              <div className="w-0 h-0 border-l-[16px] border-l-black border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent ml-1"></div>
+            </div>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent className="p-0">
-        <div className="relative">
-          <video
-            ref={videoRef}
-            className="w-full aspect-video bg-black"
-            controls
-            preload="metadata"
-            crossOrigin="anonymous"
-            style={{ maxHeight: "400px" }}
-          />
+        )}
 
-          {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-              <div className="text-white">Loading video...</div>
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/70">
+            <div className="text-center text-white">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+              <div className="text-sm">{!urlValidated ? "Validating video URL..." : "Loading video..."}</div>
             </div>
-          )}
+          </div>
+        )}
 
-          {error && (
-            <div className="p-4">
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            </div>
-          )}
+        <div className="absolute top-3 left-3 flex gap-1">
+          {asset.protocol?.map((protocol) => (
+            <Badge key={protocol} variant="secondary" className="text-xs bg-black/70 text-white border-white/20">
+              {protocol.toUpperCase()}
+            </Badge>
+          ))}
         </div>
 
-        {(showStats || showDebug) && (
-          <div className="border-t">
+        <div className="absolute top-3 right-3 flex gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setShowStats(!showStats)}
+            className="h-8 bg-black/70 text-white border-white/20 hover:bg-black/80"
+          >
+            <BarChart3 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setShowDebug(!showDebug)}
+            className="h-8 bg-black/70 text-white border-white/20 hover:bg-black/80"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {error && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {error}
+            {error.includes("not accessible") && (
+              <div className="mt-2 text-sm">
+                This may be due to:
+                <ul className="list-disc list-inside mt-1">
+                  <li>The video file has been moved or deleted</li>
+                  <li>Network connectivity issues</li>
+                  <li>CORS restrictions on the video server</li>
+                  <li>The URL is incorrect or malformed</li>
+                </ul>
+              </div>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {(showStats || showDebug) && (
+        <Card>
+          <CardContent className="p-0">
             <Tabs defaultValue="stats" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="stats">Statistics</TabsTrigger>
@@ -324,6 +699,18 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
                             <span className="text-muted-foreground">Network State:</span>
                             <div className="font-mono">{stats.networkState}</div>
                           </div>
+                          {stats.bitrate > 0 && (
+                            <div>
+                              <span className="text-muted-foreground">Bitrate:</span>
+                              <div className="font-mono">{Math.round(stats.bitrate / 1000)} kbps</div>
+                            </div>
+                          )}
+                          {stats.fps > 0 && (
+                            <div>
+                              <span className="text-muted-foreground">FPS:</span>
+                              <div className="font-mono">{stats.fps}</div>
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -361,6 +748,27 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
                           </div>
                         </>
                       )}
+
+                      {stats.bytesLoaded > 0 && (
+                        <>
+                          <Separator />
+                          <div>
+                            <h4 className="font-semibold mb-2">Data Usage</h4>
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <span className="text-muted-foreground">Bytes Loaded:</span>
+                                <div className="font-mono">{formatBytes(stats.bytesLoaded)}</div>
+                              </div>
+                              {stats.bytesTotal > 0 && (
+                                <div>
+                                  <span className="text-muted-foreground">Total Size:</span>
+                                  <div className="font-mono">{formatBytes(stats.bytesTotal)}</div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </div>
                   ) : (
                     <div className="text-center text-muted-foreground py-8">No statistics available</div>
@@ -392,9 +800,9 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
                 </ScrollArea>
               </TabsContent>
             </Tabs>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   )
 }
