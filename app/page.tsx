@@ -194,6 +194,7 @@ export default function HomePage() {
               onFiltersClick={() => setFilterPanelOpen(true)}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
+              onFilterChange={handleSidebarFilterChange}
             />
             <HeaderBar
               searchQuery=""
@@ -239,6 +240,7 @@ export default function HomePage() {
             onFiltersClick={() => setFilterPanelOpen(true)}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
+            onFilterChange={handleSidebarFilterChange}
           />
 
           {/* Mobile Search */}

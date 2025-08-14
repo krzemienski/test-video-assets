@@ -44,7 +44,17 @@ export function MobileNavigation({
               <SheetTitle className="text-left">Navigation</SheetTitle>
             </SheetHeader>
             <div className="flex-1 overflow-auto">
-              <AppSidebar />
+              <AppSidebar
+                collapsible="none"
+                onFilterChange={(filters) => {
+                  // Handle filter changes and close mobile nav
+                  if (window.innerWidth < 768) {
+                    onOpenChange(false)
+                  }
+                  // You might need to pass this up to the parent component
+                  console.log("Mobile sidebar filter change:", filters)
+                }}
+              />
             </div>
           </SheetContent>
         </Sheet>
