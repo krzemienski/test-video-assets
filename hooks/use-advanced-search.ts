@@ -139,11 +139,11 @@ export function useAdvancedSearch({ assets, searchQuery }: UseAdvancedSearchProp
             break
           case "protocol":
           case "protocols":
-            matches = asset.protocols.some((p) => p.toLowerCase().includes(value.toLowerCase()))
+            matches = (asset.protocol || []).some((p) => p.toLowerCase().includes(value.toLowerCase()))
             break
           case "codec":
           case "codecs":
-            matches = asset.codecs?.some((c) => c.toLowerCase().includes(value.toLowerCase())) || false
+            matches = (asset.codec || []).some((c) => c.toLowerCase().includes(value.toLowerCase()))
             break
           case "host":
             matches = asset.host.toLowerCase().includes(value.toLowerCase())
@@ -159,7 +159,7 @@ export function useAdvancedSearch({ assets, searchQuery }: UseAdvancedSearchProp
             break
           case "features":
           case "feature":
-            matches = asset.features.some((f) => f.toLowerCase().includes(value.toLowerCase()))
+            matches = (asset.features || []).some((f) => f.toLowerCase().includes(value.toLowerCase()))
             break
           case "notes":
             matches = asset.notes?.toLowerCase().includes(value.toLowerCase()) || false
@@ -173,13 +173,13 @@ export function useAdvancedSearch({ assets, searchQuery }: UseAdvancedSearchProp
         const exactValue = value.toLowerCase()
         matches = [
           asset.category,
-          ...asset.protocols,
-          ...(asset.codecs || []),
+          ...(asset.protocol || []),
+          ...(asset.codec || []),
           asset.host,
           asset.hdr,
           asset.container,
           asset.resolution?.label,
-          ...asset.features,
+          ...(asset.features || []),
           asset.notes,
         ].some((field) => field?.toLowerCase() === exactValue)
         break
@@ -188,13 +188,13 @@ export function useAdvancedSearch({ assets, searchQuery }: UseAdvancedSearchProp
         const termValue = value.toLowerCase()
         matches = [
           asset.category,
-          ...asset.protocols,
-          ...(asset.codecs || []),
+          ...(asset.protocol || []),
+          ...(asset.codec || []),
           asset.host,
           asset.hdr,
           asset.container,
           asset.resolution?.label,
-          ...asset.features,
+          ...(asset.features || []),
           asset.notes,
         ].some((field) => field?.toLowerCase().includes(termValue))
         break
