@@ -55,7 +55,7 @@ export function useAssets(): UseAssetsReturn {
             assetsData = Array.isArray(rawData) ? rawData.filter(validateAsset) : []
           }
         } catch (fetchError) {
-          console.log("Assets JSON not found, using mock data")
+          console.log("Assets JSON not found, trying API route")
         }
 
         try {
@@ -74,6 +74,24 @@ export function useAssets(): UseAssetsReturn {
           }
         } catch (fetchError) {
           console.log("Metadata JSON not found")
+        }
+
+        if (assetsData.length === 0) {
+          try {
+            console.log("Trying API route for asset processing...")
+            const apiResponse = await fetch("/api/process-assets")
+            if (apiResponse.ok) {
+              const apiData = await apiResponse.json()
+              if (apiData.assets && Array.isArray(apiData.assets)) {
+                assetsData = apiData.assets.filter(validateAsset)
+                facetsData = apiData.facetCounts || null
+                metadataData = apiData.metadata || null
+                console.log(`Loaded ${assetsData.length} assets from API`)
+              }
+            }
+          } catch (apiError) {
+            console.log("API route failed, using mock data")
+          }
         }
 
         if (assetsData.length === 0) {
@@ -109,6 +127,23 @@ export function useAssets(): UseAssetsReturn {
           ]
 
           assetsData = mockAssets.filter(validateAsset)
+
+          facetsData = {
+            protocols: { hls: 1, dash: 1 },
+            codecs: { avc: 2 },
+            resolutions: { "1080p": 2 },
+            hdr: { sdr: 2 },
+            containers: { mp4: 2 },
+            hosts: { "devstreaming-cdn.apple.com": 1, "bitmovin-a.akamaihd.net": 1 },
+            schemes: { https: 2 },
+          }
+
+          metadataData = {
+            totalAssets: 2,
+            buildTimestamp: new Date().toISOString(),
+            sourceUrl: "mock-data",
+            version: "1.0.0",
+          }
         }
 
         setAssets(assetsData)

@@ -13,6 +13,8 @@ import { useAssetFilters } from "@/hooks/use-asset-filters"
 import type { Asset, FilterState } from "@/lib/types"
 
 export default function HomePage() {
+  const [refreshKey, setRefreshKey] = React.useState(0)
+
   // Data loading
   const { assets, facetCounts, metadata, isLoading, error } = useAssets()
 
@@ -37,6 +39,12 @@ export default function HomePage() {
     assets,
     filters,
   })
+
+  const handleDataRefresh = React.useCallback(() => {
+    setRefreshKey((prev) => prev + 1)
+    // Force a re-render and re-fetch by updating the key
+    window.location.reload()
+  }, [])
 
   const handleClearFilters = () => {
     setFilters({
@@ -92,6 +100,7 @@ export default function HomePage() {
             onClearFilters={() => {}}
             onFiltersClick={() => {}}
             activeFilterCount={0}
+            onDataRefresh={handleDataRefresh}
           />
           <div className="flex flex-1 items-center justify-center">
             <div className="text-center">
@@ -120,12 +129,13 @@ export default function HomePage() {
             onClearFilters={() => {}}
             onFiltersClick={() => {}}
             activeFilterCount={0}
+            onDataRefresh={handleDataRefresh}
           />
           <div className="flex flex-1 items-center justify-center">
             <div className="text-center">
               <div className="text-lg font-medium mb-2 text-destructive">Failed to Load Assets</div>
               <div className="text-sm text-muted-foreground mb-4">{error}</div>
-              <div className="text-xs text-muted-foreground">Make sure to run the data processing script first</div>
+              <div className="text-xs text-muted-foreground">Try clicking "Load CSV" to process the data</div>
             </div>
           </div>
         </SidebarInset>
@@ -147,6 +157,7 @@ export default function HomePage() {
           onClearFilters={handleClearFilters}
           onFiltersClick={() => setFilterPanelOpen(true)}
           activeFilterCount={activeFilterCount}
+          onDataRefresh={handleDataRefresh}
         />
 
         <FilterPanel
@@ -166,7 +177,7 @@ export default function HomePage() {
               <div className="text-center">
                 <div className="text-lg font-medium mb-2">No Assets Found</div>
                 <div className="text-sm text-muted-foreground">
-                  Run the data processing script to populate the asset database
+                  Click "Load CSV" in the header to process and load the asset data
                 </div>
               </div>
             </div>
