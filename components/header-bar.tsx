@@ -1,5 +1,5 @@
 "use client"
-import { Search, Grid3X3, List, SlidersHorizontal, Download, Loader2, CheckCircle, XCircle } from "lucide-react"
+import { Search, Grid3X3, List, SlidersHorizontal } from "lucide-react"
 import React from "react"
 
 import { Button } from "@/components/ui/button"
@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
-import { useToast } from "@/hooks/use-toast"
 
 interface HeaderBarProps {
   searchQuery: string
@@ -19,7 +18,6 @@ interface HeaderBarProps {
   onClearFilters: () => void
   onFiltersClick: () => void
   activeFilterCount: number
-  onDataRefresh?: () => void // Added callback for data refresh
 }
 
 export function HeaderBar({
@@ -32,59 +30,7 @@ export function HeaderBar({
   onClearFilters,
   onFiltersClick,
   activeFilterCount,
-  onDataRefresh,
 }: HeaderBarProps) {
-  const [isProcessing, setIsProcessing] = React.useState(false)
-  const [processStatus, setProcessStatus] = React.useState<"idle" | "success" | "error">("idle")
-  const { toast } = useToast()
-
-  const handleProcessCSV = async () => {
-    setIsProcessing(true)
-    setProcessStatus("idle")
-
-    try {
-      const response = await fetch("/api/process-assets", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const result = await response.json()
-
-      setProcessStatus("success")
-      toast({
-        title: "CSV Processing Complete",
-        description: `Processed ${result.assetsCount || 0} assets successfully`,
-      })
-
-      // Refresh the data
-      if (onDataRefresh) {
-        onDataRefresh()
-      }
-
-      // Reset status after 3 seconds
-      setTimeout(() => setProcessStatus("idle"), 3000)
-    } catch (error) {
-      console.error("Error processing CSV:", error)
-      setProcessStatus("error")
-      toast({
-        title: "CSV Processing Failed",
-        description: "Failed to process CSV data. Please try again.",
-        variant: "destructive",
-      })
-
-      // Reset status after 3 seconds
-      setTimeout(() => setProcessStatus("idle"), 3000)
-    } finally {
-      setIsProcessing(false)
-    }
-  }
-
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key === "k") {
@@ -138,37 +84,6 @@ export function HeaderBar({
 
       {/* Result Count */}
       <div className="text-sm text-muted-foreground">{resultCount.toLocaleString()} assets</div>
-
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={handleProcessCSV}
-        disabled={isProcessing}
-        className="h-8 px-3 text-xs bg-transparent"
-        title="Process CSV Data"
-      >
-        {isProcessing ? (
-          <>
-            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-            Processing...
-          </>
-        ) : processStatus === "success" ? (
-          <>
-            <CheckCircle className="h-3 w-3 mr-1 text-green-600" />
-            Success
-          </>
-        ) : processStatus === "error" ? (
-          <>
-            <XCircle className="h-3 w-3 mr-1 text-red-600" />
-            Error
-          </>
-        ) : (
-          <>
-            <Download className="h-3 w-3 mr-1" />
-            Load CSV
-          </>
-        )}
-      </Button>
 
       {/* View Controls */}
       <div className="flex items-center gap-1">
