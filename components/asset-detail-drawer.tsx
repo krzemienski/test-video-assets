@@ -1,5 +1,6 @@
 "use client"
 import { Copy, ExternalLink, Download, Share, Info, Code, Tag } from "lucide-react"
+import { VideoPreview } from "@/components/video-preview"
 
 import type { Asset } from "@/lib/types"
 import { Button } from "@/components/ui/button"
@@ -39,8 +40,8 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
 
   const handleCopySummary = async () => {
     const summary = [
-      asset.protocol.map((p) => p.toUpperCase()).join(" + "),
-      asset.codec?.map((c) => c.toUpperCase()).join(" + "),
+      asset.protocols?.map((p) => p.toUpperCase()).join(" + "),
+      asset.codecs?.map((c) => c.toUpperCase()).join(" + "),
       asset.resolution?.label || "Unknown Resolution",
       asset.hdr && asset.hdr !== "sdr" ? asset.hdr.toUpperCase() : null,
     ]
@@ -170,6 +171,21 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
 
             <ScrollArea className="h-[calc(100vh-200px)] mt-4">
               <TabsContent value="overview" className="space-y-4">
+                {/* Video Preview */}
+                {(asset.protocols?.includes("hls") ||
+                  asset.protocols?.includes("dash") ||
+                  asset.protocols?.includes("file") ||
+                  asset.url.match(/\.(mp4|webm|ogg|mov|avi|mkv|m3u8|mpd)$/i)) && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Video Preview</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <VideoPreview asset={asset} className="border-0 shadow-none" />
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Quick Actions */}
                 <Card>
                   <CardHeader>
@@ -206,7 +222,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                         Share
                       </Button>
                     </div>
-                    {(asset.protocol.includes("hls") || asset.protocol.includes("dash")) && (
+                    {(asset.protocols?.includes("hls") || asset.protocols?.includes("dash")) && (
                       <Button
                         variant="outline"
                         onClick={handleCopyManifest}
@@ -226,11 +242,11 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-wrap gap-2">
-                      {asset.protocol.map((protocol) => (
+                      {asset.protocols?.map((protocol) => (
                         <Badge key={protocol} className={getProtocolBadgeColor(protocol)}>
                           {protocol.toUpperCase()}
                         </Badge>
-                      ))}
+                      )) || <span className="text-muted-foreground">No protocols specified</span>}
                     </div>
                   </CardContent>
                 </Card>
@@ -245,9 +261,9 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                       <div>
                         <div className="text-sm font-medium text-muted-foreground">Codec</div>
                         <div className="mt-1">
-                          {asset.codec?.length ? (
+                          {asset.codecs?.length ? (
                             <div className="flex flex-wrap gap-1">
-                              {asset.codec.map((codec) => (
+                              {asset.codecs.map((codec) => (
                                 <Badge key={codec} variant="secondary">
                                   {codec === "avc"
                                     ? "H.264/AVC"
@@ -287,7 +303,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                 </Card>
 
                 {/* Features */}
-                {asset.features.length > 0 && (
+                {asset.features && asset.features.length > 0 && (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-base">Features</CardTitle>
@@ -371,7 +387,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                 )}
 
                 {/* Manifest Example */}
-                {(asset.protocol.includes("hls") || asset.protocol.includes("dash")) && (
+                {(asset.protocols?.includes("hls") || asset.protocols?.includes("dash")) && (
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-base">Manifest Example</CardTitle>
@@ -406,7 +422,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
 }
 
 function generateManifestExample(asset: Asset): string | null {
-  if (asset.protocol.includes("hls")) {
+  if (asset.protocols?.includes("hls")) {
     return `// HLS Manifest Example
 const video = document.createElement('video');
 video.src = '${asset.url}';
@@ -423,7 +439,7 @@ if (Hls.isSupported()) {
 }`
   }
 
-  if (asset.protocol.includes("dash")) {
+  if (asset.protocols?.includes("dash")) {
     return `// DASH Manifest Example
 import dashjs from 'dashjs';
 

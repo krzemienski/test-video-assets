@@ -17,7 +17,11 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar"
 
-// Navigation data based on PRD requirements
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  onFilterChange?: (filters: Record<string, string[]>) => void
+}
+
+// Navigation data with filter configurations
 const navigationData = {
   main: [
     {
@@ -30,84 +34,96 @@ const navigationData = {
   protocols: [
     {
       title: "HLS",
-      url: "/protocols/hls",
       icon: Play,
+      filter: { protocols: ["hls"] },
     },
     {
       title: "DASH",
-      url: "/protocols/dash",
       icon: Video,
+      filter: { protocols: ["dash"] },
     },
     {
       title: "CMAF",
-      url: "/protocols/cmaf",
       icon: Database,
+      filter: { protocols: ["cmaf"] },
     },
     {
       title: "Smooth Streaming",
-      url: "/protocols/smooth",
       icon: Gauge,
+      filter: { protocols: ["smooth"] },
     },
   ],
   videoSpecs: [
     {
       title: "4K Assets",
-      url: "/specs/4k",
       icon: Monitor,
+      filter: { resolutions: ["4k", "2160p"] },
     },
     {
       title: "8K Assets",
-      url: "/specs/8k",
       icon: Monitor,
+      filter: { resolutions: ["8k", "4320p"] },
     },
     {
       title: "H.264/AVC",
-      url: "/codecs/avc",
       icon: FileVideo,
+      filter: { codecs: ["avc", "h264"] },
     },
     {
       title: "HEVC/H.265",
-      url: "/codecs/hevc",
       icon: FileVideo,
+      filter: { codecs: ["hevc", "h265"] },
     },
     {
       title: "AV1",
-      url: "/codecs/av1",
       icon: FileVideo,
+      filter: { codecs: ["av1"] },
     },
   ],
   advancedFeatures: [
     {
       title: "HDR10",
-      url: "/hdr/hdr10",
       icon: Sparkles,
+      filter: { hdr: ["hdr10"] },
     },
     {
       title: "HLG",
-      url: "/hdr/hlg",
       icon: Sparkles,
+      filter: { hdr: ["hlg"] },
     },
     {
       title: "Dolby Vision",
-      url: "/hdr/dovi",
       icon: Zap,
+      filter: { hdr: ["dolby-vision", "dovi"] },
     },
   ],
   resources: [
     {
       title: "Documentation",
-      url: "/resources/docs",
+      url: "/resources",
       icon: Settings,
     },
     {
       title: "Tools & Players",
-      url: "/resources/tools",
+      url: "/resources",
       icon: Settings,
     },
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ onFilterChange, ...props }: AppSidebarProps) {
+  const handleFilterClick = (filter: Record<string, string[]>) => {
+    if (onFilterChange) {
+      onFilterChange(filter)
+    }
+  }
+
+  const handleClearFilters = () => {
+    if (onFilterChange) {
+      onFilterChange({})
+    }
+  }
+
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
@@ -130,7 +146,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               {navigationData.main.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={item.isActive}>
-                    <a href={item.url}>
+                    <a href={item.url} onClick={handleClearFilters}>
                       <item.icon />
                       <span>{item.title}</span>
                     </a>
@@ -150,11 +166,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenu>
               {navigationData.protocols.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
+                  <SidebarMenuButton onClick={() => handleFilterClick(item.filter)}>
+                    <item.icon />
+                    <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -169,11 +183,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenu>
               {navigationData.videoSpecs.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
+                  <SidebarMenuButton onClick={() => handleFilterClick(item.filter)}>
+                    <item.icon />
+                    <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -188,11 +200,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenu>
               {navigationData.advancedFeatures.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
+                  <SidebarMenuButton onClick={() => handleFilterClick(item.filter)}>
+                    <item.icon />
+                    <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

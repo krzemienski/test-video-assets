@@ -18,6 +18,7 @@ export interface Asset {
   hdr?: Hdr
   notes?: string
   features: string[]
+  qualityScore?: QualityScore
 }
 
 export interface FacetCounts {
@@ -55,4 +56,18 @@ export interface UIState {
   sortBy: "category" | "host" | "protocols" | "codecs" | "resolution"
   sortOrder: "asc" | "desc"
   selectedAsset?: Asset
+}
+
+export interface QualityScore {
+  overall: number // 0-100
+  breakdown: {
+    protocol: number // 0-20
+    codec: number // 0-25
+    resolution: number // 0-20
+    hdr: number // 0-15
+    container: number // 0-10
+    features: number // 0-10
+  }
+  grade: "A+" | "A" | "B+" | "B" | "C+" | "C" | "D" | "F"
+  recommendations: string[]
 }

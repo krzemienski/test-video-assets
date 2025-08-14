@@ -31,6 +31,19 @@ function validateAsset(asset: any): asset is Asset {
   )
 }
 
+function generateUniqueId(url: string, index?: number): string {
+  const timestamp = Date.now()
+  const random = Math.random().toString(36).substring(2, 8)
+  const urlHash = url
+    .split("")
+    .reduce((a, b) => {
+      a = (a << 5) - a + b.charCodeAt(0)
+      return a & a
+    }, 0)
+    .toString(36)
+  return `${urlHash}-${timestamp}-${random}${index !== undefined ? `-${index}` : ""}`
+}
+
 export function useAssets(): UseAssetsReturn {
   const [assets, setAssets] = React.useState<Asset[]>([])
   const [facetCounts, setFacetCounts] = React.useState<FacetCounts | null>(null)
@@ -52,7 +65,14 @@ export function useAssets(): UseAssetsReturn {
           const assetsResponse = await fetch("/assets.json")
           if (assetsResponse.ok) {
             const rawData = await assetsResponse.json()
-            assetsData = Array.isArray(rawData) ? rawData.filter(validateAsset) : []
+            assetsData = Array.isArray(rawData)
+              ? rawData
+                  .map((asset, index) => ({
+                    ...asset,
+                    id: asset.id || generateUniqueId(asset.url, index),
+                  }))
+                  .filter(validateAsset)
+              : []
           }
         } catch (fetchError) {
           console.log("Assets JSON not found, trying API route")
@@ -83,7 +103,12 @@ export function useAssets(): UseAssetsReturn {
             if (apiResponse.ok) {
               const apiData = await apiResponse.json()
               if (apiData.assets && Array.isArray(apiData.assets)) {
-                assetsData = apiData.assets.filter(validateAsset)
+                assetsData = apiData.assets
+                  .map((asset, index) => ({
+                    ...asset,
+                    id: asset.id || generateUniqueId(asset.url, index),
+                  }))
+                  .filter(validateAsset)
                 facetsData = apiData.facetCounts || null
                 metadataData = apiData.metadata || null
                 console.log(`Loaded ${assetsData.length} assets from API`)
@@ -97,7 +122,10 @@ export function useAssets(): UseAssetsReturn {
         if (assetsData.length === 0) {
           const mockAssets = [
             {
-              id: "mock-1",
+              id: generateUniqueId(
+                "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8",
+                0,
+              ),
               url: "https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8",
               host: "devstreaming-cdn.apple.com",
               scheme: "https",
@@ -111,7 +139,10 @@ export function useAssets(): UseAssetsReturn {
               features: ["multi-bitrate"],
             },
             {
-              id: "mock-2",
+              id: generateUniqueId(
+                "https://bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd",
+                1,
+              ),
               url: "https://bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd",
               host: "bitmovin-a.akamaihd.net",
               scheme: "https",
