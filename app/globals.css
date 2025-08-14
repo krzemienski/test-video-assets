@@ -4,75 +4,81 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --radius: 0.625rem;
+  --radius: 0.65rem;
   --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --foreground: oklch(0.141 0.005 285.823);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.141 0.005 285.823);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.141 0.005 285.823);
+  --primary: oklch(0.606 0.25 292.717);
+  --primary-foreground: oklch(0.969 0.016 293.756);
+  --secondary: oklch(0.967 0.001 286.375);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.967 0.001 286.375);
+  --muted-foreground: oklch(0.552 0.016 285.938);
+  --accent: oklch(0.967 0.001 286.375);
+  --accent-foreground: oklch(0.21 0.006 285.885);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --destructive-foreground: oklch(0.969 0.016 293.756);
+  --border: oklch(0.92 0.004 286.32);
+  --input: oklch(0.92 0.004 286.32);
+  --ring: oklch(0.606 0.25 292.717);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
   --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-foreground: oklch(0.141 0.005 285.823);
+  --sidebar-primary: oklch(0.606 0.25 292.717);
+  --sidebar-primary-foreground: oklch(0.969 0.016 293.756);
+  --sidebar-accent: oklch(0.967 0.001 286.375);
+  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
+  --sidebar-border: oklch(0.92 0.004 286.32);
+  --sidebar-ring: oklch(0.606 0.25 292.717);
+  --font-inter: "Inter", sans-serif;
+  --font-jetbrains-mono: "JetBrains Mono", monospace;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
+  --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
+  --card: oklch(0.21 0.006 285.885);
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
+  --popover: oklch(0.21 0.006 285.885);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
+  --primary: oklch(0.541 0.281 293.009);
+  --primary-foreground: oklch(0.969 0.016 293.756);
+  --secondary: oklch(0.274 0.006 286.033);
   --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
+  --muted: oklch(0.274 0.006 286.033);
+  --muted-foreground: oklch(0.705 0.015 286.067);
+  --accent: oklch(0.274 0.006 286.033);
   --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.541 0.281 293.009);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
+  --sidebar: oklch(0.21 0.006 285.885);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-primary: oklch(0.541 0.281 293.009);
+  --sidebar-primary-foreground: oklch(0.969 0.016 293.756);
+  --sidebar-accent: oklch(0.274 0.006 286.033);
   --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.541 0.281 293.009);
 }
 
 @theme inline {
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -118,4 +124,259 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Enhanced Video.js styling with comprehensive theme integration */
+@import url("https://vjs.zencdn.net/8.12.0/video-js.css");
+
+/* Video.js theme integration with violet color scheme */
+.video-js {
+  font-family: var(--font-sans);
+  background-color: #000;
+}
+
+.video-js .vjs-control-bar {
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.9) 100%);
+  backdrop-filter: blur(4px);
+}
+
+.video-js .vjs-play-progress,
+.video-js .vjs-volume-level {
+  background-color: oklch(0.606 0.25 292.717);
+}
+
+.video-js .vjs-slider:hover .vjs-play-progress,
+.video-js .vjs-slider:hover .vjs-volume-level {
+  background-color: oklch(0.541 0.281 293.009);
+}
+
+.video-js .vjs-big-play-button {
+  background-color: rgba(154, 52, 181, 0.8);
+  border-color: oklch(0.606 0.25 292.717);
+  border-radius: var(--radius);
+  transition: all 0.2s ease;
+}
+
+.video-js .vjs-big-play-button:hover {
+  background-color: rgba(154, 52, 181, 0.9);
+  transform: scale(1.05);
+}
+
+.video-js .vjs-big-play-button:focus {
+  outline: 2px solid oklch(0.606 0.25 292.717);
+  outline-offset: 2px;
+}
+
+/* Quality selector styling */
+.video-js .vjs-quality-selector .vjs-menu-content {
+  background-color: oklch(0.21 0.006 285.885);
+  border: 1px solid oklch(0.92 0.004 286.32);
+  border-radius: var(--radius);
+}
+
+.video-js .vjs-quality-selector .vjs-menu-item {
+  color: oklch(0.985 0 0);
+}
+
+.video-js .vjs-quality-selector .vjs-menu-item:hover {
+  background-color: oklch(0.274 0.006 286.033);
+}
+
+.video-js .vjs-quality-selector .vjs-menu-item.vjs-selected {
+  background-color: oklch(0.606 0.25 292.717);
+  color: oklch(0.969 0.016 293.756);
+}
+
+/* Playback rate menu styling */
+.video-js .vjs-playback-rate .vjs-menu-content {
+  background-color: oklch(0.21 0.006 285.885);
+  border: 1px solid oklch(0.92 0.004 286.32);
+  border-radius: var(--radius);
+}
+
+.video-js .vjs-playback-rate .vjs-menu-item {
+  color: oklch(0.985 0 0);
+}
+
+.video-js .vjs-playback-rate .vjs-menu-item:hover {
+  background-color: oklch(0.274 0.006 286.033);
+}
+
+.video-js .vjs-playback-rate .vjs-menu-item.vjs-selected {
+  background-color: oklch(0.606 0.25 292.717);
+  color: oklch(0.969 0.016 293.756);
+}
+
+/* Loading spinner styling */
+.video-js .vjs-loading-spinner {
+  border-color: oklch(0.606 0.25 292.717) transparent transparent transparent;
+}
+
+/* Error display styling */
+.video-js .vjs-error-display {
+  background-color: rgba(0, 0, 0, 0.8);
+  color: oklch(0.985 0 0);
+}
+
+.video-js .vjs-error-display .vjs-modal-dialog-content {
+  font-family: var(--font-sans);
+}
+
+/* Fullscreen button styling */
+.video-js .vjs-fullscreen-control:hover {
+  color: oklch(0.606 0.25 292.717);
+}
+
+/* Volume control styling */
+.video-js .vjs-volume-control:hover .vjs-volume-bar {
+  background-color: rgba(154, 52, 181, 0.2);
+}
+
+/* Progress bar styling */
+.video-js .vjs-progress-control .vjs-progress-holder {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.video-js .vjs-progress-control .vjs-load-progress {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Time display styling */
+.video-js .vjs-current-time,
+.video-js .vjs-duration,
+.video-js .vjs-time-divider {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+/* Dark mode adjustments */
+.dark .video-js .vjs-control-bar {
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.95) 100%);
+}
+
+.dark .video-js .vjs-big-play-button {
+  background-color: rgba(137, 43, 226, 0.8);
+}
+
+.dark .video-js .vjs-big-play-button:hover {
+  background-color: rgba(137, 43, 226, 0.9);
+}
+
+/* Mobile-specific Video.js adjustments */
+@media (max-width: 768px) {
+  .video-js .vjs-big-play-button {
+    font-size: 2.5rem;
+    width: 2em;
+    height: 2em;
+    line-height: 2em;
+  }
+
+  .video-js .vjs-control-bar {
+    font-size: 14px;
+  }
+
+  .video-js .vjs-current-time,
+  .video-js .vjs-duration {
+    font-size: 12px;
+  }
+}
+
+/* Touch-friendly improvements for video controls */
+@media (hover: none) and (pointer: coarse) {
+  .video-js .vjs-control-bar .vjs-control {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .video-js .vjs-big-play-button {
+    min-height: 88px;
+    min-width: 88px;
+  }
+}
+
+/* Custom animations for mobile interactions */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-2px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    box-shadow: 0 0 5px rgba(154, 52, 181, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(154, 52, 181, 0.6);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+.animate-ripple {
+  animation: ripple 0.6s linear;
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+  .hover\:scale-105:hover {
+    transform: none;
+  }
+
+  .active\:scale-95:active {
+    transform: scale(0.95);
+  }
+
+  /* Larger touch targets for mobile */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Loading skeleton animations */
+@keyframes skeleton-loading {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background-size: 200px 100%;
+  animation: skeleton-loading 1.5s infinite;
 }

@@ -20,11 +20,11 @@ export function useAssetSearch({ assets, searchQuery }: UseAssetSearchProps) {
       // Search in category
       if (asset.category.toLowerCase().includes(query)) return true
 
-      // Search in protocols
-      if (asset.protocols.some((p) => p.toLowerCase().includes(query))) return true
+      // Search in protocol
+      if (asset.protocol?.some((p) => p.toLowerCase().includes(query))) return true
 
-      // Search in codecs
-      if (asset.codecs?.some((c) => c.toLowerCase().includes(query))) return true
+      // Search in codec
+      if (asset.codec?.some((c) => c.toLowerCase().includes(query))) return true
 
       // Search in host
       if (asset.host.toLowerCase().includes(query)) return true
@@ -36,7 +36,7 @@ export function useAssetSearch({ assets, searchQuery }: UseAssetSearchProps) {
       if (asset.container?.toLowerCase().includes(query)) return true
 
       // Search in features
-      if (asset.features.some((f) => f.toLowerCase().includes(query))) return true
+      if (asset.features?.some((f) => f.toLowerCase().includes(query))) return true
 
       // Search in notes
       if (asset.notes?.toLowerCase().includes(query)) return true

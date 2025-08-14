@@ -60,9 +60,12 @@ export function AssetBrowser({ assets, viewMode, onAssetSelect }: AssetBrowserPr
     window.open(url, "_blank", "noopener,noreferrer")
   }
 
-  const formatResolution = (resolution?: { width: number; height: number; label?: string }) => {
+  const formatResolution = (resolution?: { width: number | null; height: number | null; label: string } | null) => {
     if (!resolution) return "Unknown"
-    return resolution.label || `${resolution.width}×${resolution.height}`
+    return (
+      resolution.label ||
+      (resolution.width && resolution.height ? `${resolution.width}×${resolution.height}` : "Unknown")
+    )
   }
 
   const getProtocolBadgeColor = (protocol: Protocol) => {
@@ -77,11 +80,28 @@ export function AssetBrowser({ assets, viewMode, onAssetSelect }: AssetBrowserPr
     return colors[protocol]
   }
 
+  const getProtocolArray = (protocol: string[] | null | undefined): string[] => {
+    return Array.isArray(protocol) ? protocol : []
+  }
+
+  const getCodecArray = (codec: string[] | null | undefined): string[] => {
+    return Array.isArray(codec) ? codec : []
+  }
+
+  const getFeaturesArray = (features: string[] | null | undefined): string[] => {
+    return Array.isArray(features) ? features : []
+  }
+
   if (viewMode === "cards") {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {assets.map((asset) => {
-          const PrimaryProtocolIcon = protocolIcons[asset.protocols[0]] || FileVideo
+          const protocolArray = getProtocolArray(asset.protocol)
+          const PrimaryProtocolIcon =
+            protocolArray.length > 0 ? protocolIcons[protocolArray[0] as Protocol] || FileVideo : FileVideo
+          const codecArray = getCodecArray(asset.codec)
+          const featuresArray = getFeaturesArray(asset.features)
+
           return (
             <Card
               key={asset.id}
@@ -120,30 +140,35 @@ export function AssetBrowser({ assets, viewMode, onAssetSelect }: AssetBrowserPr
                 <div className="space-y-3">
                   {/* Protocol badges */}
                   <div className="flex flex-wrap gap-1">
-                    {asset.protocols.map((protocol) => (
+                    {protocolArray.map((protocol) => (
                       <Badge
                         key={protocol}
                         variant="secondary"
-                        className={`text-xs ${getProtocolBadgeColor(protocol)}`}
+                        className={`text-xs ${getProtocolBadgeColor(protocol as Protocol)}`}
                       >
                         {protocol.toUpperCase()}
                       </Badge>
                     ))}
+                    {protocolArray.length === 0 && (
+                      <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-800">
+                        UNKNOWN
+                      </Badge>
+                    )}
                   </div>
 
                   {/* Technical specs */}
                   <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                     <div>
                       <span className="font-medium">Codec:</span>{" "}
-                      {asset.codecs?.map((c) => c.toUpperCase()).join(", ") || "Unknown"}
+                      {codecArray.length > 0 ? codecArray.map((c) => c.toUpperCase()).join(", ") : "Unknown"}
                     </div>
                     <div>
                       <span className="font-medium">Resolution:</span> {formatResolution(asset.resolution)}
                     </div>
                     <div>
                       <span className="font-medium">HDR:</span>{" "}
-                      <Badge variant="outline" className={`text-xs ${hdrColors[asset.hdr || "sdr"]}`}>
-                        {(asset.hdr || "sdr").toUpperCase()}
+                      <Badge variant="outline" className={`text-xs ${hdrColors[asset.hdr]}`}>
+                        {asset.hdr.toUpperCase()}
                       </Badge>
                     </div>
                     <div>
@@ -152,16 +177,16 @@ export function AssetBrowser({ assets, viewMode, onAssetSelect }: AssetBrowserPr
                   </div>
 
                   {/* Features */}
-                  {asset.features.length > 0 && (
+                  {featuresArray.length > 0 && (
                     <div className="flex flex-wrap gap-1">
-                      {asset.features.slice(0, 3).map((feature) => (
+                      {featuresArray.slice(0, 3).map((feature) => (
                         <Badge key={feature} variant="outline" className="text-xs">
                           {feature}
                         </Badge>
                       ))}
-                      {asset.features.length > 3 && (
+                      {featuresArray.length > 3 && (
                         <Badge variant="outline" className="text-xs">
-                          +{asset.features.length - 3}
+                          +{featuresArray.length - 3}
                         </Badge>
                       )}
                     </div>
@@ -192,75 +217,91 @@ export function AssetBrowser({ assets, viewMode, onAssetSelect }: AssetBrowserPr
           </TableRow>
         </TableHeader>
         <TableBody>
-          {assets.map((asset) => (
-            <TableRow
-              key={asset.id}
-              className="cursor-pointer hover:bg-muted/50"
-              onClick={() => onAssetSelect?.(asset)}
-            >
-              <TableCell className="font-medium">
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-muted-foreground/30" />
-                  <span className="truncate">{asset.category}</span>
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex flex-wrap gap-1">
-                  {asset.protocols.slice(0, 2).map((protocol) => (
-                    <Badge key={protocol} variant="secondary" className={`text-xs ${getProtocolBadgeColor(protocol)}`}>
-                      {protocol.toUpperCase()}
-                    </Badge>
-                  ))}
-                  {asset.protocols.length > 2 && (
-                    <Badge variant="secondary" className="text-xs">
-                      +{asset.protocols.length - 2}
-                    </Badge>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell>
-                <span className="text-sm">{asset.codecs?.map((c) => c.toUpperCase()).join(", ") || "Unknown"}</span>
-              </TableCell>
-              <TableCell>
-                <span className="text-sm">{formatResolution(asset.resolution)}</span>
-              </TableCell>
-              <TableCell>
-                <Badge variant="outline" className={`text-xs ${hdrColors[asset.hdr || "sdr"]}`}>
-                  {(asset.hdr || "sdr").toUpperCase()}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <span className="text-sm">{asset.container?.toUpperCase() || "Unknown"}</span>
-              </TableCell>
-              <TableCell>
-                <span className="text-sm text-muted-foreground truncate max-w-[120px]" title={asset.host}>
-                  {asset.host}
-                </span>
-              </TableCell>
-              <TableCell>
-                <div className="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0"
-                    onClick={(e) => handleCopyUrl(asset.url, e)}
-                    title="Copy URL"
-                  >
-                    <Copy className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0"
-                    onClick={(e) => handleOpenUrl(asset.url, e)}
-                    title="Open URL"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
+          {assets.map((asset) => {
+            const protocolArray = getProtocolArray(asset.protocol)
+            const codecArray = getCodecArray(asset.codec)
+
+            return (
+              <TableRow
+                key={asset.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => onAssetSelect?.(asset)}
+              >
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-muted-foreground/30" />
+                    <span className="truncate">{asset.category}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {protocolArray.slice(0, 2).map((protocol) => (
+                      <Badge
+                        key={protocol}
+                        variant="secondary"
+                        className={`text-xs ${getProtocolBadgeColor(protocol as Protocol)}`}
+                      >
+                        {protocol.toUpperCase()}
+                      </Badge>
+                    ))}
+                    {protocolArray.length > 2 && (
+                      <Badge variant="secondary" className="text-xs">
+                        +{protocolArray.length - 2}
+                      </Badge>
+                    )}
+                    {protocolArray.length === 0 && (
+                      <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-800">
+                        UNKNOWN
+                      </Badge>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <span className="text-sm">
+                    {codecArray.length > 0 ? codecArray.map((c) => c.toUpperCase()).join(", ") : "Unknown"}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span className="text-sm">{formatResolution(asset.resolution)}</span>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline" className={`text-xs ${hdrColors[asset.hdr]}`}>
+                    {asset.hdr.toUpperCase()}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <span className="text-sm">{asset.container?.toUpperCase() || "Unknown"}</span>
+                </TableCell>
+                <TableCell>
+                  <span className="text-sm text-muted-foreground truncate max-w-[120px]" title={asset.host}>
+                    {asset.host}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={(e) => handleCopyUrl(asset.url, e)}
+                      title="Copy URL"
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={(e) => handleOpenUrl(asset.url, e)}
+                      title="Open URL"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )
+          })}
         </TableBody>
       </Table>
     </div>
