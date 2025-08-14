@@ -185,6 +185,17 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
     addDebugLog("Fullscreen change")
   }
 
+  const handleVideoTap = (e: React.TouchEvent | React.MouseEvent) => {
+    if (videoRef.current && canPlay && !isLoading) {
+      e.preventDefault()
+      if (isPlaying) {
+        videoRef.current.pause()
+      } else {
+        videoRef.current.play()
+      }
+    }
+  }
+
   React.useEffect(() => {
     const initializePlayer = async () => {
       try {
@@ -576,7 +587,7 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
 
   return (
     <div className={`space-y-4 ${className}`}>
-      <div className="relative rounded-lg overflow-hidden bg-black">
+      <div className="relative rounded-lg overflow-hidden bg-black touch-manipulation">
         <video
           ref={videoRef}
           className="w-full aspect-video video-js vjs-default-skin"
@@ -584,15 +595,22 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
           preload="metadata"
           crossOrigin="anonymous"
           style={{ maxHeight: "400px" }}
+          onTouchStart={handleVideoTap}
+          onClick={handleVideoTap}
+          playsInline
         />
 
         {canPlay && !isPlaying && !isLoading && (
           <div
-            className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors cursor-pointer group"
+            className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 active:bg-black/40 transition-colors cursor-pointer group touch-manipulation"
             onClick={handlePlayButtonClick}
+            onTouchEnd={(e) => {
+              e.preventDefault()
+              handlePlayButtonClick()
+            }}
           >
-            <div className="w-20 h-20 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-              <div className="w-0 h-0 border-l-[16px] border-l-black border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent ml-1"></div>
+            <div className="w-24 h-24 sm:w-20 sm:h-20 rounded-full bg-white/90 hover:bg-white active:bg-white/80 flex items-center justify-center shadow-lg group-hover:scale-110 group-active:scale-105 transition-transform touch-manipulation">
+              <div className="w-0 h-0 border-l-[20px] border-l-black border-t-[15px] border-t-transparent border-b-[15px] border-b-transparent ml-1 sm:border-l-[16px] sm:border-t-[12px] sm:border-b-[12px]"></div>
             </div>
           </div>
         )}
@@ -606,30 +624,36 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
           </div>
         )}
 
-        <div className="absolute top-3 left-3 flex gap-1">
+        <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex gap-1">
           {asset.protocol?.map((protocol) => (
-            <Badge key={protocol} variant="secondary" className="text-xs bg-black/70 text-white border-white/20">
+            <Badge
+              key={protocol}
+              variant="secondary"
+              className="text-xs bg-black/70 text-white border-white/20 px-2 py-1"
+            >
               {protocol.toUpperCase()}
             </Badge>
           ))}
         </div>
 
-        <div className="absolute top-3 right-3 flex gap-2">
+        <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex gap-2">
           <Button
             variant="secondary"
             size="sm"
             onClick={() => setShowStats(!showStats)}
-            className="h-8 bg-black/70 text-white border-white/20 hover:bg-black/80"
+            className="h-10 w-10 sm:h-8 sm:w-auto bg-black/70 text-white border-white/20 hover:bg-black/80 active:bg-black/90 touch-manipulation"
           >
             <BarChart3 className="h-4 w-4" />
+            <span className="hidden sm:inline ml-1">Stats</span>
           </Button>
           <Button
             variant="secondary"
             size="sm"
             onClick={() => setShowDebug(!showDebug)}
-            className="h-8 bg-black/70 text-white border-white/20 hover:bg-black/80"
+            className="h-10 w-10 sm:h-8 sm:w-auto bg-black/70 text-white border-white/20 hover:bg-black/80 active:bg-black/90 touch-manipulation"
           >
             <Settings className="h-4 w-4" />
+            <span className="hidden sm:inline ml-1">Debug</span>
           </Button>
         </div>
       </div>
@@ -658,21 +682,25 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
         <Card>
           <CardContent className="p-0">
             <Tabs defaultValue="stats" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="stats">Statistics</TabsTrigger>
-                <TabsTrigger value="debug">Debug Info</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 h-12 sm:h-10">
+                <TabsTrigger value="stats" className="text-sm sm:text-base touch-manipulation">
+                  Statistics
+                </TabsTrigger>
+                <TabsTrigger value="debug" className="text-sm sm:text-base touch-manipulation">
+                  Debug Info
+                </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="stats" className="p-4">
-                <ScrollArea className="h-64">
+              <TabsContent value="stats" className="p-3 sm:p-4">
+                <ScrollArea className="h-48 sm:h-64">
                   {stats ? (
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                       <div>
-                        <h4 className="font-semibold mb-2 flex items-center gap-2">
+                        <h4 className="font-semibold mb-2 flex items-center gap-2 text-sm sm:text-base">
                           <Info className="h-4 w-4" />
                           Playback Statistics
                         </h4>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
                           <div>
                             <span className="text-muted-foreground">Current Time:</span>
                             <div className="font-mono">{formatTime(stats.currentTime)}</div>
@@ -717,7 +745,7 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
                       <Separator />
 
                       <div>
-                        <h4 className="font-semibold mb-2">Buffer Information</h4>
+                        <h4 className="font-semibold mb-2 text-sm sm:text-base">Buffer Information</h4>
                         <div className="space-y-2 text-sm">
                           {getBufferedRanges().map((range, index) => (
                             <div key={index} className="flex justify-between">
@@ -734,8 +762,8 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
                         <>
                           <Separator />
                           <div>
-                            <h4 className="font-semibold mb-2">Frame Statistics</h4>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
+                            <h4 className="font-semibold mb-2 text-sm sm:text-base">Frame Statistics</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
                               <div>
                                 <span className="text-muted-foreground">Decoded Frames:</span>
                                 <div className="font-mono">{stats.decodedFrames.toLocaleString()}</div>
@@ -753,8 +781,8 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
                         <>
                           <Separator />
                           <div>
-                            <h4 className="font-semibold mb-2">Data Usage</h4>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
+                            <h4 className="font-semibold mb-2 text-sm sm:text-base">Data Usage</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
                               <div>
                                 <span className="text-muted-foreground">Bytes Loaded:</span>
                                 <div className="font-mono">{formatBytes(stats.bytesLoaded)}</div>
@@ -776,19 +804,24 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
                 </ScrollArea>
               </TabsContent>
 
-              <TabsContent value="debug" className="p-4">
-                <ScrollArea className="h-64">
+              <TabsContent value="debug" className="p-3 sm:p-4">
+                <ScrollArea className="h-48 sm:h-64">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold">Debug Log</h4>
-                      <Button variant="outline" size="sm" onClick={() => setDebugLogs([])}>
+                      <h4 className="font-semibold text-sm sm:text-base">Debug Log</h4>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setDebugLogs([])}
+                        className="h-8 px-3 touch-manipulation"
+                      >
                         Clear
                       </Button>
                     </div>
                     {debugLogs.length > 0 ? (
                       <div className="space-y-1">
                         {debugLogs.map((log, index) => (
-                          <div key={index} className="text-xs font-mono bg-muted p-2 rounded">
+                          <div key={index} className="text-xs font-mono bg-muted p-2 rounded break-all">
                             {log}
                           </div>
                         ))}

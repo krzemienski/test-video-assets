@@ -183,36 +183,48 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent className="w-[600px] sm:w-[700px]">
+        <SheetContent className="w-full sm:w-[600px] md:w-[700px] touch-manipulation">
           <SheetHeader>
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">
-                <SheetTitle className="text-lg font-semibold pr-8">{asset.category}</SheetTitle>
-                <SheetDescription className="text-sm text-muted-foreground mt-1">
+                <SheetTitle className="text-lg font-semibold pr-8 break-words">{asset.category}</SheetTitle>
+                <SheetDescription className="text-sm text-muted-foreground mt-1 break-all">
                   {asset.host} • {asset.scheme.toUpperCase()}
                 </SheetDescription>
               </div>
             </div>
           </SheetHeader>
 
-          <div className="mt-6">
+          <div className="mt-4 sm:mt-6">
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="overview" className="flex items-center gap-2">
-                  <Info className="h-4 w-4" />
-                  Overview
+              <TabsList className="grid w-full grid-cols-3 h-12 sm:h-10">
+                <TabsTrigger
+                  value="overview"
+                  className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm touch-manipulation"
+                >
+                  <Info className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Overview</span>
+                  <span className="xs:hidden">Info</span>
                 </TabsTrigger>
-                <TabsTrigger value="technical" className="flex items-center gap-2">
-                  <Code className="h-4 w-4" />
-                  Technical
+                <TabsTrigger
+                  value="technical"
+                  className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm touch-manipulation"
+                >
+                  <Code className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Technical</span>
+                  <span className="xs:hidden">Tech</span>
                 </TabsTrigger>
-                <TabsTrigger value="raw" className="flex items-center gap-2">
-                  <Tag className="h-4 w-4" />
-                  Raw Data
+                <TabsTrigger
+                  value="raw"
+                  className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm touch-manipulation"
+                >
+                  <Tag className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Raw Data</span>
+                  <span className="xs:hidden">Raw</span>
                 </TabsTrigger>
               </TabsList>
 
-              <ScrollArea className="h-[calc(100vh-200px)] mt-4">
+              <ScrollArea className="h-[calc(100vh-180px)] sm:h-[calc(100vh-200px)] mt-4">
                 <TabsContent value="overview" className="space-y-4">
                   {/* Video Preview */}
                   {isVideoPlayable(asset) && (
@@ -228,15 +240,15 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                       <CardTitle className="text-base">Quick Actions</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      <div className="flex flex-wrap gap-2">
-                        <Button onClick={handleOpenUrl} className="flex items-center gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                        <Button onClick={handleOpenUrl} className="flex items-center gap-2 h-10 touch-manipulation">
                           <ExternalLink className="h-4 w-4" />
                           Open Asset
                         </Button>
                         <Button
                           variant="outline"
                           onClick={handleCopyUrl}
-                          className="flex items-center gap-2 bg-transparent"
+                          className="flex items-center gap-2 bg-transparent h-10 touch-manipulation"
                         >
                           <Copy className="h-4 w-4" />
                           Copy URL
@@ -244,7 +256,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                         <Button
                           variant="outline"
                           onClick={handleCopySummary}
-                          className="flex items-center gap-2 bg-transparent"
+                          className="flex items-center gap-2 bg-transparent h-10 touch-manipulation"
                         >
                           <Download className="h-4 w-4" />
                           Copy Summary
@@ -252,7 +264,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                         <Button
                           variant="outline"
                           onClick={handleShare}
-                          className="flex items-center gap-2 bg-transparent"
+                          className="flex items-center gap-2 bg-transparent h-10 touch-manipulation"
                         >
                           <Share className="h-4 w-4" />
                           Share
@@ -260,7 +272,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                         <Button
                           variant="outline"
                           onClick={handleEditAsset}
-                          className="flex items-center gap-2 bg-transparent text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-950"
+                          className="flex items-center gap-2 bg-transparent text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-950 h-10 touch-manipulation"
                         >
                           <Edit className="h-4 w-4" />
                           Suggest Edit
@@ -268,7 +280,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                         <Button
                           variant="outline"
                           onClick={handleReportAsset}
-                          className="flex items-center gap-2 bg-transparent text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:text-orange-400 dark:hover:text-orange-300 dark:hover:bg-orange-950"
+                          className="flex items-center gap-2 bg-transparent text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:text-orange-400 dark:hover:text-orange-300 dark:hover:bg-orange-950 h-10 touch-manipulation"
                         >
                           <AlertTriangle className="h-4 w-4" />
                           Report Issue
@@ -278,7 +290,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                         <Button
                           variant="outline"
                           onClick={handleCopyManifest}
-                          className="flex items-center gap-2 bg-transparent"
+                          className="flex items-center gap-2 bg-transparent w-full h-10 touch-manipulation"
                         >
                           <Code className="h-4 w-4" />
                           Copy Manifest Example
@@ -309,14 +321,14 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                       <CardTitle className="text-base">Video Specifications</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <div className="text-sm font-medium text-muted-foreground">Codec</div>
                           <div className="mt-1">
                             {asset.codec?.length ? (
                               <div className="flex flex-wrap gap-1">
                                 {asset.codec.map((codec) => (
-                                  <Badge key={codec} variant="secondary">
+                                  <Badge key={codec} variant="secondary" className="text-xs">
                                     {codec === "avc"
                                       ? "H.264/AVC"
                                       : codec === "hevc"
@@ -333,13 +345,15 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                         <div>
                           <div className="text-sm font-medium text-muted-foreground">Resolution</div>
                           <div className="mt-1">
-                            <Badge variant="outline">{formatResolution(asset.resolution)}</Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {formatResolution(asset.resolution)}
+                            </Badge>
                           </div>
                         </div>
                         <div>
                           <div className="text-sm font-medium text-muted-foreground">HDR Support</div>
                           <div className="mt-1">
-                            <Badge className={getHdrBadgeColor(asset.hdr)}>
+                            <Badge className={`${getHdrBadgeColor(asset.hdr)} text-xs`}>
                               {asset.hdr === "dovi" ? "Dolby Vision" : asset.hdr.toUpperCase()}
                             </Badge>
                           </div>
@@ -347,7 +361,9 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                         <div>
                           <div className="text-sm font-medium text-muted-foreground">Container</div>
                           <div className="mt-1">
-                            <Badge variant="outline">{asset.container?.toUpperCase() || "Unknown"}</Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {asset.container?.toUpperCase() || "Unknown"}
+                            </Badge>
                           </div>
                         </div>
                       </div>
@@ -383,6 +399,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                   </Card>
                 </TabsContent>
 
+                {/* Technical Tab */}
                 <TabsContent value="technical" className="space-y-4">
                   {/* URL Information */}
                   <Card>
@@ -392,17 +409,21 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                     <CardContent className="space-y-3">
                       <div>
                         <div className="text-sm font-medium text-muted-foreground">Full URL</div>
-                        <div className="mt-1 p-2 bg-muted rounded text-sm font-mono break-all">{asset.url}</div>
+                        <div className="mt-1 p-2 bg-muted rounded text-xs sm:text-sm font-mono break-all">
+                          {asset.url}
+                        </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <div className="text-sm font-medium text-muted-foreground">Host</div>
-                          <div className="mt-1 text-sm">{asset.host}</div>
+                          <div className="mt-1 text-sm break-all">{asset.host}</div>
                         </div>
                         <div>
                           <div className="text-sm font-medium text-muted-foreground">Scheme</div>
                           <div className="mt-1">
-                            <Badge variant="outline">{asset.scheme.toUpperCase()}</Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {asset.scheme.toUpperCase()}
+                            </Badge>
                           </div>
                         </div>
                       </div>
@@ -453,13 +474,14 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                   )}
                 </TabsContent>
 
+                {/* Raw Data Tab */}
                 <TabsContent value="raw" className="space-y-4">
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-base">Raw Asset Data</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <pre className="text-xs bg-muted p-3 rounded overflow-x-auto">
+                      <pre className="text-xs bg-muted p-3 rounded overflow-x-auto whitespace-pre-wrap break-all">
                         <code>{JSON.stringify(asset, null, 2)}</code>
                       </pre>
                     </CardContent>
