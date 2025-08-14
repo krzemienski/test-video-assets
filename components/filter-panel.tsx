@@ -87,7 +87,7 @@ export function FilterPanel({ open, onOpenChange, filters, onFiltersChange, face
     return protocols.map((protocol) => ({
       value: protocol,
       label: protocol.toUpperCase(),
-      count: facetCounts?.protocols[protocol] || 0,
+      count: facetCounts?.protocol?.[protocol] || 0,
     }))
   }, [facetCounts])
 
@@ -96,7 +96,7 @@ export function FilterPanel({ open, onOpenChange, filters, onFiltersChange, face
     return codecs.map((codec) => ({
       value: codec,
       label: codec === "avc" ? "H.264/AVC" : codec === "hevc" ? "HEVC/H.265" : codec.toUpperCase(),
-      count: facetCounts?.codecs[codec] || 0,
+      count: facetCounts?.codec?.[codec] || 0,
     }))
   }, [facetCounts])
 
@@ -105,7 +105,7 @@ export function FilterPanel({ open, onOpenChange, filters, onFiltersChange, face
     return hdrTypes.map((hdr) => ({
       value: hdr,
       label: hdr === "dovi" ? "Dolby Vision" : hdr.toUpperCase(),
-      count: facetCounts?.hdr[hdr] || 0,
+      count: facetCounts?.hdr?.[hdr] || 0,
     }))
   }, [facetCounts])
 
@@ -114,13 +114,13 @@ export function FilterPanel({ open, onOpenChange, filters, onFiltersChange, face
     return containers.map((container) => ({
       value: container,
       label: container.toUpperCase(),
-      count: facetCounts?.containers[container] || 0,
+      count: facetCounts?.container?.[container] || 0,
     }))
   }, [facetCounts])
 
   const resolutionItems = React.useMemo(() => {
-    if (!facetCounts?.resolutions) return []
-    return Object.entries(facetCounts.resolutions)
+    if (!facetCounts?.resolution) return []
+    return Object.entries(facetCounts.resolution)
       .sort(([a], [b]) => {
         // Sort by resolution height
         const getHeight = (res: string) => {
@@ -139,8 +139,8 @@ export function FilterPanel({ open, onOpenChange, filters, onFiltersChange, face
   }, [facetCounts])
 
   const hostItems = React.useMemo(() => {
-    if (!facetCounts?.hosts) return []
-    return Object.entries(facetCounts.hosts)
+    if (!facetCounts?.host) return []
+    return Object.entries(facetCounts.host)
       .sort(([, a], [, b]) => b - a) // Sort by count descending
       .slice(0, 20) // Top 20 hosts
       .map(([host, count]) => ({
@@ -151,8 +151,8 @@ export function FilterPanel({ open, onOpenChange, filters, onFiltersChange, face
   }, [facetCounts])
 
   const schemeItems = React.useMemo(() => {
-    if (!facetCounts?.schemes) return []
-    return Object.entries(facetCounts.schemes).map(([scheme, count]) => ({
+    if (!facetCounts?.scheme) return []
+    return Object.entries(facetCounts.scheme).map(([scheme, count]) => ({
       value: scheme,
       label: scheme.toUpperCase(),
       count,
@@ -161,26 +161,26 @@ export function FilterPanel({ open, onOpenChange, filters, onFiltersChange, face
 
   const activeFilterCount = React.useMemo(() => {
     return (
-      filters.protocols.length +
-      filters.codecs.length +
-      filters.resolutions.length +
+      filters.protocol.length +
+      filters.codec.length +
+      filters.resolution.length +
       filters.hdr.length +
-      filters.containers.length +
-      filters.hosts.length +
-      filters.schemes.length
+      filters.container.length +
+      filters.host.length +
+      filters.scheme.length
     )
   }, [filters])
 
   const handleClearAll = () => {
     onFiltersChange({
       search: filters.search,
-      protocols: [],
-      codecs: [],
-      resolutions: [],
+      protocol: [],
+      codec: [],
+      resolution: [],
       hdr: [],
-      containers: [],
-      hosts: [],
-      schemes: [],
+      container: [],
+      host: [],
+      scheme: [],
     })
   }
 
@@ -209,8 +209,8 @@ export function FilterPanel({ open, onOpenChange, filters, onFiltersChange, face
             <FilterSection
               title="Streaming Protocols"
               items={protocolItems}
-              selectedValues={filters.protocols}
-              onSelectionChange={(protocols) => onFiltersChange({ ...filters, protocols: protocols as Protocol[] })}
+              selectedValues={filters.protocol}
+              onSelectionChange={(protocol) => onFiltersChange({ ...filters, protocol: protocol as Protocol[] })}
             />
 
             <Separator />
@@ -219,8 +219,8 @@ export function FilterPanel({ open, onOpenChange, filters, onFiltersChange, face
             <FilterSection
               title="Video Codecs"
               items={codecItems}
-              selectedValues={filters.codecs}
-              onSelectionChange={(codecs) => onFiltersChange({ ...filters, codecs: codecs as Codec[] })}
+              selectedValues={filters.codec}
+              onSelectionChange={(codec) => onFiltersChange({ ...filters, codec: codec as Codec[] })}
             />
 
             <Separator />
@@ -231,8 +231,8 @@ export function FilterPanel({ open, onOpenChange, filters, onFiltersChange, face
                 <FilterSection
                   title="Resolution"
                   items={resolutionItems}
-                  selectedValues={filters.resolutions}
-                  onSelectionChange={(resolutions) => onFiltersChange({ ...filters, resolutions })}
+                  selectedValues={filters.resolution}
+                  onSelectionChange={(resolution) => onFiltersChange({ ...filters, resolution })}
                 />
                 <Separator />
               </>
@@ -252,8 +252,8 @@ export function FilterPanel({ open, onOpenChange, filters, onFiltersChange, face
             <FilterSection
               title="Container Format"
               items={containerItems}
-              selectedValues={filters.containers}
-              onSelectionChange={(containers) => onFiltersChange({ ...filters, containers: containers as Container[] })}
+              selectedValues={filters.container}
+              onSelectionChange={(container) => onFiltersChange({ ...filters, container: container as Container[] })}
             />
 
             <Separator />
@@ -264,8 +264,8 @@ export function FilterPanel({ open, onOpenChange, filters, onFiltersChange, face
                 <FilterSection
                   title="URL Scheme"
                   items={schemeItems}
-                  selectedValues={filters.schemes}
-                  onSelectionChange={(schemes) => onFiltersChange({ ...filters, schemes })}
+                  selectedValues={filters.scheme}
+                  onSelectionChange={(scheme) => onFiltersChange({ ...filters, scheme })}
                 />
                 <Separator />
               </>
@@ -276,8 +276,8 @@ export function FilterPanel({ open, onOpenChange, filters, onFiltersChange, face
               <FilterSection
                 title="Top Hosts"
                 items={hostItems}
-                selectedValues={filters.hosts}
-                onSelectionChange={(hosts) => onFiltersChange({ ...filters, hosts })}
+                selectedValues={filters.host}
+                onSelectionChange={(host) => onFiltersChange({ ...filters, host })}
               />
             )}
           </div>
