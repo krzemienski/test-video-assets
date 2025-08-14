@@ -331,10 +331,8 @@ function extractFeatures(formatProtocol: string, notes: string) {
 }
 
 async function generateId(input: string): Promise<string> {
-  const encoder = new TextEncoder()
-  const data = encoder.encode(input)
-  const hashBuffer = await window.crypto.subtle.digest("SHA-256", data)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
-  return hashHex.substring(0, 8)
+  // Use Node.js crypto module for server-side hashing
+  const crypto = await import('crypto')
+  const hash = crypto.createHash('sha256').update(input).digest('hex')
+  return hash.substring(0, 8)
 }
