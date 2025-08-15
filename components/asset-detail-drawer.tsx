@@ -1,6 +1,6 @@
 "use client"
 import { Copy, ExternalLink, Download, Share, Info, Code, Tag, AlertTriangle, Edit } from "lucide-react"
-import { VideoPreview } from "@/components/video-preview"
+import { VideoPreviewDynamic } from "@/components/video-preview-dynamic"
 import { ReportAssetDialog } from "@/components/report-asset-dialog"
 import { EditAssetDialog } from "@/components/edit-asset-dialog"
 import { useState } from "react"
@@ -230,7 +230,7 @@ export function AssetDetailDrawer({ asset, open, onOpenChange }: AssetDetailDraw
                   {isVideoPlayable(asset) && (
                     <div>
                       <h3 className="text-base font-semibold mb-3">Video Preview</h3>
-                      <VideoPreview asset={asset} className="" />
+                      <VideoPreviewDynamic asset={asset} className="" />
                     </div>
                   )}
 

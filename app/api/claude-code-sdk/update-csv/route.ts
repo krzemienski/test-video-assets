@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import fs from "fs"
-import path from "path"
+import * as fs from "fs"
+import * as path from "path"
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     if (updates.edit && updates.edit.length > 0) {
       dataLines = dataLines.map((line) => {
         const url = line.split(",")[0].replace(/"/g, "").trim()
-        const edit = updates.edit.find((e) => e.url === url)
+        const edit = updates.edit.find((e: any) => e.url === url)
 
         if (edit) {
           return `"${edit.changes.url || url}","${edit.changes.category || ""}","${edit.changes.formatProtocol || ""}","${edit.changes.notes || ""}"`

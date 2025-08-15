@@ -38,14 +38,14 @@ export function useTouchGestures(options: TouchGestureOptions) {
   const lastTap = React.useRef<number>(0)
   const initialDistance = React.useRef<number>(0)
 
-  const getDistance = (touch1: Touch, touch2: Touch) => {
+  const getDistance = (touch1: React.Touch, touch2: React.Touch) => {
     const dx = touch1.clientX - touch2.clientX
     const dy = touch1.clientY - touch2.clientY
     return Math.sqrt(dx * dx + dy * dy)
   }
 
   const handleTouchStart = React.useCallback(
-    (e: TouchEvent) => {
+    (e: React.TouchEvent) => {
       if (preventScroll) {
         e.preventDefault()
       }
@@ -66,7 +66,7 @@ export function useTouchGestures(options: TouchGestureOptions) {
   )
 
   const handleTouchMove = React.useCallback(
-    (e: TouchEvent) => {
+    (e: React.TouchEvent) => {
       if (preventScroll) {
         e.preventDefault()
       }
@@ -82,7 +82,7 @@ export function useTouchGestures(options: TouchGestureOptions) {
   )
 
   const handleTouchEnd = React.useCallback(
-    (e: TouchEvent) => {
+    (e: React.TouchEvent) => {
       if (!touchStart.current) return
 
       const touch = e.changedTouches[0]

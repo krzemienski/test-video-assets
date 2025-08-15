@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import crypto from "crypto"
+import * as crypto from "crypto"
 
 export async function GET() {
   try {
@@ -142,14 +142,14 @@ async function processVideoAssets() {
         assets.push(asset)
         processedCount++
 
-        protocol.forEach((p) => (facetCounts.protocol[p] = (facetCounts.protocol[p] || 0) + 1))
-        codec.forEach((c) => (facetCounts.codec[c] = (facetCounts.codec[c] || 0) + 1))
+        protocol.forEach((p) => ((facetCounts.protocol as any)[p] = ((facetCounts.protocol as any)[p] || 0) + 1))
+        codec.forEach((c) => ((facetCounts.codec as any)[c] = ((facetCounts.codec as any)[c] || 0) + 1))
         if (resolution?.label)
-          facetCounts.resolution[resolution.label] = (facetCounts.resolution[resolution.label] || 0) + 1
-        if (asset.hdr) facetCounts.hdr[asset.hdr] = (facetCounts.hdr[asset.hdr] || 0) + 1
-        if (asset.container) facetCounts.container[asset.container] = (facetCounts.container[asset.container] || 0) + 1
-        facetCounts.host[asset.host] = (facetCounts.host[asset.host] || 0) + 1
-        facetCounts.scheme[asset.scheme] = (facetCounts.scheme[asset.scheme] || 0) + 1
+          (facetCounts.resolution as any)[resolution.label] = ((facetCounts.resolution as any)[resolution.label] || 0) + 1
+        if (asset.hdr) (facetCounts.hdr as any)[asset.hdr] = ((facetCounts.hdr as any)[asset.hdr] || 0) + 1
+        if (asset.container) (facetCounts.container as any)[asset.container] = ((facetCounts.container as any)[asset.container] || 0) + 1
+        ;(facetCounts.host as any)[asset.host] = ((facetCounts.host as any)[asset.host] || 0) + 1
+        ;(facetCounts.scheme as any)[asset.scheme] = ((facetCounts.scheme as any)[asset.scheme] || 0) + 1
 
         if (processedCount % 100 === 0) {
           console.log(
@@ -163,10 +163,10 @@ async function processVideoAssets() {
     }
 
     Object.keys(facetCounts).forEach((key) => {
-      const sorted = Object.entries(facetCounts[key])
+      const sorted = Object.entries((facetCounts as any)[key])
         .sort(([, a], [, b]) => (b as number) - (a as number))
         .reduce((acc, [k, v]) => ({ ...acc, [k]: v }), {})
-      facetCounts[key] = sorted
+      ;(facetCounts as any)[key] = sorted
     })
 
     const metadata = {

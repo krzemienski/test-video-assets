@@ -1,0 +1,31 @@
+
+> my-v0-project@0.1.0 build
+> next build
+
+   ▲ Next.js 15.2.4
+   - Environments: .env.local, .env.production
+   - Experiments (use with caution):
+     ✓ optimizeCss
+     ✓ scrollRestoration
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+
+./components/video-preview.tsx
+251:32  Warning: The ref value 'videoRef.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'videoRef.current' to a variable inside the effect, and use that variable in the cleanup function.  react-hooks/exhaustive-deps
+271:6  Warning: React Hook React.useEffect has missing dependencies: 'getVideoSource', 'handleCanPlay', 'handleCanPlayThrough', 'handleEnded', 'handleError', 'handleFullscreenChange', 'handleLoadStart', 'handleLoadedData', 'handleLoadedMetadata', 'handlePause', 'handlePlay', 'handleRateChange', 'handleResize', 'handleSeeked', 'handleSeeking', 'handleVolumeChange', 'initializeNativeVideo', 'updateStats', and 'validateUrl'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+   Collecting page data ...
+unhandledRejection [Error: Cannot find module '/Users/nick/Desktop/test-video-assets/.next/server/es/_document.js'
+Require stack:
+- /Users/nick/Desktop/test-video-assets/node_modules/next/dist/server/require.js
+- /Users/nick/Desktop/test-video-assets/node_modules/next/dist/server/load-components.js
+- /Users/nick/Desktop/test-video-assets/node_modules/next/dist/build/utils.js
+- /Users/nick/Desktop/test-video-assets/node_modules/next/dist/build/worker.js
+- /Users/nick/Desktop/test-video-assets/node_modules/next/dist/compiled/jest-worker/processChild.js] {
+  type: 'Error',
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}

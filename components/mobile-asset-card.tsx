@@ -53,8 +53,6 @@ export function MobileAssetCard({ asset, onSelect, onPreview }: MobileAssetCardP
       className={`cursor-pointer transition-all duration-200 ${
         isPressed ? "scale-95 shadow-sm" : "hover:shadow-md active:scale-95"
       }`}
-      onTouchStart={() => setIsPressed(true)}
-      onTouchEnd={() => setIsPressed(false)}
       onTouchCancel={() => setIsPressed(false)}
       {...gestureHandlers}
     >
