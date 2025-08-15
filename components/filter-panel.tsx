@@ -3,7 +3,7 @@
 import * as React from "react"
 import { X } from "lucide-react"
 
-import type { FilterState, FacetCounts, Protocol, Codec, Hdr, Container } from "@/lib/types"
+import type { FilterState, FacetCounts, Protocol, Codec, Hdr, Container, Scheme } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -265,7 +265,7 @@ export function FilterPanel({ open, onOpenChange, filters, onFiltersChange, face
                   title="URL Scheme"
                   items={schemeItems}
                   selectedValues={filters.scheme}
-                  onSelectionChange={(scheme) => onFiltersChange({ ...filters, scheme })}
+                  onSelectionChange={(scheme) => onFiltersChange({ ...filters, scheme: scheme as Scheme[] })}
                 />
                 <Separator />
               </>

@@ -74,7 +74,7 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
       addDebugLog("URL validation successful")
       return true
     } catch (error) {
-      if (error.name === "AbortError") {
+      if ((error as any).name === "AbortError") {
         addDebugLog("URL validation timeout - URL may not exist")
       } else {
         addDebugLog(`URL validation failed: ${error}`)
@@ -305,8 +305,8 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
 
         addDebugLog(`Source set: ${source.src} (${source.type})`)
 
-        if (autoplay) {
-          player.play().catch((err: any) => {
+        if (autoplay && player) {
+          player?.play()?.catch((err: any) => {
             addDebugLog(`Autoplay failed: ${err}`)
           })
         }
@@ -360,7 +360,7 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
     if (isStreamingProtocol) {
       const canPlay = videoElement.canPlayType(source.type)
 
-      if (canPlay === "" || canPlay === "no") {
+      if (canPlay === "" || (canPlay as any) === "no") {
         addDebugLog(`Native browser doesn't support ${source.type}, trying Video.js...`)
         try {
           await initializeVideoJS(videoElement, source)

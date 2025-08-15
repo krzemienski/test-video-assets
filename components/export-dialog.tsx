@@ -170,7 +170,7 @@ export function ExportDialog({ assets, filteredCount, children }: ExportDialogPr
                 <Checkbox
                   id="quality-scores"
                   checked={includeQualityScores}
-                  onCheckedChange={setIncludeQualityScores}
+                  onCheckedChange={(checked) => setIncludeQualityScores(checked === true)}
                 />
                 <Label htmlFor="quality-scores" className="text-sm cursor-pointer">
                   Include quality scores and grades
@@ -180,7 +180,7 @@ export function ExportDialog({ assets, filteredCount, children }: ExportDialogPr
                 <Checkbox
                   id="recommendations"
                   checked={includeRecommendations}
-                  onCheckedChange={setIncludeRecommendations}
+                  onCheckedChange={(checked) => setIncludeRecommendations(checked === true)}
                 />
                 <Label htmlFor="recommendations" className="text-sm cursor-pointer">
                   Include quality recommendations

@@ -16,7 +16,7 @@ import { MobileSearch } from "@/components/mobile-search"
 import { MobileAssetCard } from "@/components/mobile-asset-card"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
-import { useAssets } from "@/hooks/use-assets"
+import { useAssets } from "@/hooks/use-assets-api"
 import { useAssetFilters } from "@/hooks/use-asset-filters"
 import { useAdvancedSearch } from "@/hooks/use-advanced-search"
 import { useQualityScoring } from "@/hooks/use-quality-scoring"
@@ -194,7 +194,6 @@ export default function HomePage() {
               onFiltersClick={() => setFilterPanelOpen(true)}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
-              onFilterChange={handleSidebarFilterChange}
             />
             <HeaderBar
               searchQuery=""
@@ -240,7 +239,6 @@ export default function HomePage() {
             onFiltersClick={() => setFilterPanelOpen(true)}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
-            onFilterChange={handleSidebarFilterChange}
           />
 
           {/* Mobile Search */}
