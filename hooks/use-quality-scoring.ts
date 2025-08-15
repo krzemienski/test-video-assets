@@ -72,13 +72,14 @@ export function useQualityScoring() {
     let resolutionScore = 0
     if (asset.resolution) {
       const { width, height } = asset.resolution
-      if (width >= 7680) resolutionScore = RESOLUTION_SCORES["8K"]
-      else if (width >= 3840) resolutionScore = RESOLUTION_SCORES["4K"]
-      else if (width >= 2560) resolutionScore = RESOLUTION_SCORES["2K"]
-      else if (width >= 1920) resolutionScore = RESOLUTION_SCORES["1080p"]
-      else if (width >= 1280) resolutionScore = RESOLUTION_SCORES["720p"]
-      else if (width >= 640) resolutionScore = RESOLUTION_SCORES["480p"]
-      else resolutionScore = RESOLUTION_SCORES["360p"]
+      if (width && width >= 7680) resolutionScore = RESOLUTION_SCORES["8K"]
+      else if (width && width >= 3840) resolutionScore = RESOLUTION_SCORES["4K"]
+      else if (width && width >= 2560) resolutionScore = RESOLUTION_SCORES["2K"]
+      else if (width && width >= 1920) resolutionScore = RESOLUTION_SCORES["1080p"]
+      else if (width && width >= 1280) resolutionScore = RESOLUTION_SCORES["720p"]
+      else if (width && width >= 640) resolutionScore = RESOLUTION_SCORES["480p"]
+      else if (width) resolutionScore = RESOLUTION_SCORES["360p"]
+      else resolutionScore = 0 // No width available
     }
 
     // HDR score
