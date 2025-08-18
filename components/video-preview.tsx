@@ -54,37 +54,76 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
       addDebugLog(`Validating URL: ${url}`)
 
       try {
-        new URL(url)
+        const urlObj = new URL(url)
+
+        // Check for obviously invalid URLs
+        if (urlObj.hostname === "localhost" && !url.includes("3000")) {
+          addDebugLog("Localhost URL detected without port 3000 - likely invalid")
+          return false
+        }
+
+        // Check for placeholder or test URLs
+        if (url.includes("example.com") || url.includes("test.com") || url.includes("placeholder")) {
+          addDebugLog("Placeholder URL detected - skipping")
+          return false
+        }
+
+        // Check for obviously broken URLs
+        if (url.includes("undefined") || url.includes("null") || url === "") {
+          addDebugLog("Invalid URL content detected")
+          return false
+        }
       } catch {
         addDebugLog("Invalid URL format")
         return false
       }
 
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000)
-
-      const response = await fetch(url, {
-        method: "HEAD",
-        signal: controller.signal,
-        mode: "no-cors",
-      })
-
-      clearTimeout(timeoutId)
-
-      addDebugLog("URL validation successful")
-      return true
-    } catch (error) {
-      if (error.name === "AbortError") {
-        addDebugLog("URL validation timeout - URL may not exist")
-      } else {
-        addDebugLog(`URL validation failed: ${error}`)
-      }
-
-      if (url.includes(".m3u8") || url.includes(".mpd")) {
+      // For streaming URLs, do a more lenient check
+      if (url.includes(".m3u8") || url.includes(".mpd") || url.includes("manifest")) {
         addDebugLog("Streaming URL detected, allowing Video.js to handle validation")
         return true
       }
 
+      // For direct video files, try a HEAD request with timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 3000) // Reduced timeout
+
+      try {
+        const response = await fetch(url, {
+          method: "HEAD",
+          signal: controller.signal,
+        })
+
+        clearTimeout(timeoutId)
+
+        if (response.ok || response.status === 206) {
+          // 206 for partial content
+          addDebugLog("URL validation successful")
+          return true
+        } else {
+          addDebugLog(`URL returned status: ${response.status}`)
+          return false
+        }
+      } catch (fetchError) {
+        clearTimeout(timeoutId)
+
+        if (fetchError.name === "AbortError") {
+          addDebugLog("URL validation timeout - URL may not exist")
+        } else {
+          addDebugLog(`URL validation failed: ${fetchError}`)
+        }
+
+        // For CORS-blocked requests, still allow the attempt if it's a video file
+        const hasVideoExtension = /\.(mp4|webm|mov|avi|mkv|m4v|ts)$/i.test(url)
+        if (hasVideoExtension) {
+          addDebugLog("Video file extension detected, allowing despite CORS")
+          return true
+        }
+
+        return false
+      }
+    } catch (error) {
+      addDebugLog(`URL validation error: ${error}`)
       return false
     }
   }
@@ -135,6 +174,8 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
 
     setError(errorMsg)
     addDebugLog(`Video error (${errorCode}): ${errorMsg}`)
+
+    setCanPlay(false)
   }
 
   const handlePlay = () => {
@@ -289,6 +330,8 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
             enableLowInitialPlaylist: true,
             smoothQualityChange: true,
             handleManifestRedirects: true,
+            maxPlaylistRetries: 2,
+            maxSegmentRetries: 2,
           },
         },
       })
@@ -323,13 +366,32 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
           if (errorCode === 2 || errorCode === 4) {
             setError("Video URL is not accessible or does not exist")
             setIsLoading(false)
+            setCanPlay(false)
+
+            // Don't dispose player immediately to prevent cleanup issues
+            setTimeout(() => {
+              if (playerRef.current) {
+                try {
+                  playerRef.current.dispose()
+                  playerRef.current = null
+                } catch (disposeError) {
+                  console.warn("Error disposing Video.js player:", disposeError)
+                }
+              }
+            }, 100)
             return
           }
 
+          // Only fallback for other error types
           addDebugLog("Falling back to native video...")
-          player.dispose()
-          playerRef.current = null
-          initializeNativeVideo(videoElement, source)
+          try {
+            player.dispose()
+            playerRef.current = null
+            initializeNativeVideo(videoElement, source)
+          } catch (disposeError) {
+            console.warn("Error during fallback:", disposeError)
+            setError("Video player initialization failed")
+          }
         }
       })
 
@@ -550,6 +612,21 @@ export function VideoPreview({ asset, autoplay = false, className }: VideoPrevie
   }
 
   const isPreviewable = React.useMemo(() => {
+    if (!asset.url || asset.url.trim() === "") {
+      return false
+    }
+
+    // Check for placeholder or invalid URLs
+    if (
+      asset.url.includes("undefined") ||
+      asset.url.includes("null") ||
+      asset.url.includes("example.com") ||
+      asset.url.includes("test.com") ||
+      asset.url.includes("placeholder")
+    ) {
+      return false
+    }
+
     const isWebPage = asset.url.match(/\.(html?|php|asp|jsp|cgi)(\?|$)/i)
     if (isWebPage) return false
 
